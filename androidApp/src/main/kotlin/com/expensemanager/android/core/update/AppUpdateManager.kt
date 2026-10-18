@@ -20,12 +20,8 @@ data class AppUpdateInfo(
 object CurrentRelease {
     val versionName: String = BuildConfig.VERSION_NAME
     val notes = listOf(
-        "Fingerprint protection for your financial amounts",
-        "One biometric unlock across Home, Activity, Budgets, and Insights",
-        "Category activity pages with your complete transaction history",
-        "One continuous scroll for the complete Activity page",
-        "Improved balance privacy throughout the app",
-        "Direct APK update notifications for future releases",
+        "Unlock protected amounts with your fingerprint, PIN, pattern, or phone password",
+        "Screen-lock authentication now works on phones without a fingerprint sensor",
     )
 }
 

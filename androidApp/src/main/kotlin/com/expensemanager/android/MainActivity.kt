@@ -165,26 +165,35 @@ class MainActivity : FragmentActivity() {
     }
 
     private fun authenticateToRevealBalance(onAuthenticated: () -> Unit) {
-        when (BiometricManager.from(this).canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_WEAK)) {
+        val authenticators = BiometricManager.Authenticators.BIOMETRIC_WEAK or
+            BiometricManager.Authenticators.DEVICE_CREDENTIAL
+        when (BiometricManager.from(this).canAuthenticate(authenticators)) {
             BiometricManager.BIOMETRIC_SUCCESS -> {
                 onBalanceAuthenticated = onAuthenticated
                 val promptInfo = BiometricPrompt.PromptInfo.Builder()
                     .setTitle("View your balance")
-                    .setSubtitle("Confirm your fingerprint to reveal your amounts")
-                    .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_WEAK)
-                    .setNegativeButtonText("Cancel")
+                    .setSubtitle("Use your fingerprint or phone screen lock to reveal your amounts")
+                    .setAllowedAuthenticators(authenticators)
                     .build()
                 balanceBiometricPrompt.authenticate(promptInfo)
             }
 
             BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED ->
-                Toast.makeText(this, "Set up a fingerprint in your phone settings first.", Toast.LENGTH_LONG).show()
+                Toast.makeText(
+                    this,
+                    "Set up a fingerprint or phone screen lock in your phone settings first.",
+                    Toast.LENGTH_LONG,
+                ).show()
 
             BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE ->
-                Toast.makeText(this, "This phone does not support fingerprint authentication.", Toast.LENGTH_LONG).show()
+                Toast.makeText(
+                    this,
+                    "Set up a phone screen lock to protect and reveal your amounts.",
+                    Toast.LENGTH_LONG,
+                ).show()
 
             else ->
-                Toast.makeText(this, "Fingerprint authentication is currently unavailable.", Toast.LENGTH_LONG).show()
+                Toast.makeText(this, "Phone authentication is currently unavailable.", Toast.LENGTH_LONG).show()
         }
     }
 }
