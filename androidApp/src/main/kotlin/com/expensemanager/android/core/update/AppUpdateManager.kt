@@ -20,9 +20,10 @@ data class AppUpdateInfo(
 object CurrentRelease {
     val versionName: String = BuildConfig.VERSION_NAME
     val notes = listOf(
-        "Smoother screen, navigation bar, and add-button animations",
-        "Open the home screen immediately from your saved session",
-        "Session validation and local data preparation now continue in the background",
+        "Browse the current week and a full month of earlier weekly spending on Home",
+        "Create password-encrypted backups and send them safely to your Gmail account",
+        "Restore transactions and budgets without duplicating existing records",
+        "Enjoy faster startup and smoother, more responsive navigation animations",
     )
 }
 
