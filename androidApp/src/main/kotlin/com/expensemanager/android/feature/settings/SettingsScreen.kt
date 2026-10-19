@@ -27,6 +27,7 @@ import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CloudUpload
 import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.Fingerprint
 import androidx.compose.material.icons.filled.Restore
 import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.Info
@@ -41,6 +42,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -78,10 +80,12 @@ import java.time.format.DateTimeFormatter
 fun SettingsScreen(
     selectedTheme: FinanceThemeMode,
     currentUser: AuthUser,
+    amountProtectionEnabled: Boolean,
     onBack: () -> Unit,
     onLogout: () -> Unit,
     onOpenWhatsNew: () -> Unit,
     onThemeSelected: (FinanceThemeMode) -> Unit,
+    onAmountProtectionChange: (Boolean) -> Unit,
     onCreateBackup: suspend (String) -> ByteArray,
     onRestoreBackup: suspend (ByteArray, String) -> BackupRestoreResult,
 ) {
@@ -150,6 +154,41 @@ fun SettingsScreen(
             iconTint = financeThemeColors(FinanceThemeMode.ALMOND).primary,
             onClick = { onThemeSelected(FinanceThemeMode.ALMOND) },
         )
+
+        Text("Privacy", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 22.dp))
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 10.dp)
+                .clip(RoundedCornerShape(16.dp))
+                .clickable { onAmountProtectionChange(!amountProtectionEnabled) },
+            colors = CardDefaults.cardColors(containerColor = colors.surface),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Icon(Icons.Default.Fingerprint, contentDescription = null, tint = colors.primary)
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                    Text("Protect financial amounts", fontWeight = FontWeight.SemiBold)
+                    Text(
+                        if (amountProtectionEnabled) {
+                            "Fingerprint, PIN, pattern, or password is required to reveal amounts."
+                        } else {
+                            "Off by default. Your amounts remain visible without authentication."
+                        },
+                        color = colors.secondaryText,
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                }
+                Switch(
+                    checked = amountProtectionEnabled,
+                    onCheckedChange = onAmountProtectionChange,
+                )
+            }
+        }
+
         Text("Account", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 22.dp))
         Card(
             modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
