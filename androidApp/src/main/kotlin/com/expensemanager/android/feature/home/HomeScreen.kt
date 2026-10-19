@@ -17,6 +17,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -100,7 +102,6 @@ fun HomeScreen(
     val income = calculateIncome(monthTransactions)
     val expenses = calculateExpenses(monthTransactions)
     val balance = calculateTotalBalance(transactions)
-    val weeklySpending = weekSpending(transactions, today)
     val recentTransactions = transactions.sortedByDescending { it.timestampMillis }.take(4)
     val growth = monthlyGrowthPercent(transactions, currentMonth)
 
@@ -144,8 +145,9 @@ fun HomeScreen(
             }
         }
         item {
-            WeeklySpendingCard(
-                spending = weeklySpending,
+            MonthlyWeeklySpending(
+                transactions = transactions,
+                today = today,
                 colors = colors,
                 amountsVisible = amountsVisible,
                 onOpenInsights = onOpenInsights,
@@ -356,7 +358,62 @@ private fun MonthlyMetricCard(
 }
 
 @Composable
+private fun MonthlyWeeklySpending(
+    transactions: List<FinanceTransaction>,
+    today: LocalDate,
+    colors: FinanceThemeColors,
+    amountsVisible: Boolean,
+    onOpenInsights: () -> Unit,
+) {
+    val pagerState = rememberPagerState(
+        initialPage = WeeklyHistoryPageCount - 1,
+        pageCount = { WeeklyHistoryPageCount },
+    )
+
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        HorizontalPager(
+            state = pagerState,
+            pageSpacing = 12.dp,
+            modifier = Modifier.fillMaxWidth(),
+        ) { page ->
+            val weeksAgo = WeeklyHistoryPageCount - 1L - page
+            val weekAnchor = today.minusWeeks(weeksAgo)
+            WeeklySpendingCard(
+                title = weekTitle(weekAnchor, today),
+                spending = weekSpending(transactions, weekAnchor),
+                colors = colors,
+                amountsVisible = amountsVisible,
+                onOpenInsights = onOpenInsights,
+            )
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            repeat(WeeklyHistoryPageCount) { page ->
+                Box(
+                    modifier = Modifier
+                        .padding(horizontal = 3.dp)
+                        .size(if (page == pagerState.currentPage) 8.dp else 6.dp)
+                        .clip(CircleShape)
+                        .background(
+                            if (page == pagerState.currentPage) colors.primary else colors.elevatedSurface,
+                        ),
+                )
+            }
+            Text(
+                text = "  Swipe right for earlier weeks",
+                color = colors.secondaryText,
+                style = MaterialTheme.typography.labelSmall,
+            )
+        }
+    }
+}
+
+@Composable
 private fun WeeklySpendingCard(
+    title: String,
     spending: List<DailySpending>,
     colors: FinanceThemeColors,
     amountsVisible: Boolean,
@@ -370,7 +427,7 @@ private fun WeeklySpendingCard(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
-            Text("This Week", color = colors.primaryText, style = MaterialTheme.typography.titleLarge)
+            Text(title, color = colors.primaryText, style = MaterialTheme.typography.titleLarge)
             Row(
                 modifier = Modifier
                     .clip(RoundedCornerShape(8.dp))
@@ -537,6 +594,24 @@ private fun EmptyDashboard(colors: FinanceThemeColors, onAddExpense: () -> Unit)
 }
 
 private data class DailySpending(val date: LocalDate, val amountMinor: Long)
+
+// Five calendar-week pages guarantee that the user can reach at least one full
+// month of history even when the current week has only just started.
+private const val WeeklyHistoryPageCount = 5
+
+private fun weekTitle(weekAnchor: LocalDate, today: LocalDate): String {
+    val weekStart = weekAnchor.minusDays((weekAnchor.dayOfWeek.value - 1).toLong())
+    val currentWeekStart = today.minusDays((today.dayOfWeek.value - 1).toLong())
+    return when (weekStart) {
+        currentWeekStart -> "This Week"
+        currentWeekStart.minusWeeks(1) -> "Last Week"
+        else -> {
+            val weekEnd = weekStart.plusDays(6)
+            val formatter = DateTimeFormatter.ofPattern("d MMM", Locale.getDefault())
+            "${weekStart.format(formatter)} – ${weekEnd.format(formatter)}"
+        }
+    }
+}
 
 private fun weekSpending(transactions: List<FinanceTransaction>, today: LocalDate): List<DailySpending> {
     val monday = today.minusDays((today.dayOfWeek.value - 1).toLong())
