@@ -90,6 +90,11 @@ class MainActivity : FragmentActivity() {
                     session == null -> AuthScreen(application.authRepository, resetLink)
                     else -> {
                         val authenticatedUser = session!!.user
+                        var amountProtectionEnabled by rememberSaveable(authenticatedUser.id) {
+                            mutableStateOf(
+                                application.privacyPreferences.isAmountProtectionEnabled(authenticatedUser.id),
+                            )
+                        }
                         val financeRepository = remember(authenticatedUser.id) {
                             application.financeRepository.apply {
                                 selectOwner(authenticatedUser.id.toString())
@@ -106,7 +111,17 @@ class MainActivity : FragmentActivity() {
                             viewModel = viewModel,
                             themeMode = themeMode,
                             currentUser = authenticatedUser,
+                            amountProtectionEnabled = amountProtectionEnabled,
                             onAuthenticateBalance = ::authenticateToRevealBalance,
+                            onAmountProtectionChange = { enabled ->
+                                authenticateToChangeAmountProtection(enabled) {
+                                    application.privacyPreferences.setAmountProtectionEnabled(
+                                        authenticatedUser.id,
+                                        enabled,
+                                    )
+                                    amountProtectionEnabled = enabled
+                                }
+                            },
                             onLogout = { lifecycleScope.launch { runCatching { application.authRepository.logout() } } },
                             onThemeChange = { selectedTheme ->
                                 lifecycleScope.launch { application.themePreferences.setTheme(selectedTheme) }
@@ -159,14 +174,34 @@ class MainActivity : FragmentActivity() {
     }
 
     private fun authenticateToRevealBalance(onAuthenticated: () -> Unit) {
+        authenticateOnDevice(
+            title = "View your balance",
+            subtitle = "Use your fingerprint or phone screen lock to reveal your amounts",
+            onAuthenticated = onAuthenticated,
+        )
+    }
+
+    private fun authenticateToChangeAmountProtection(enabled: Boolean, onAuthenticated: () -> Unit) {
+        authenticateOnDevice(
+            title = if (enabled) "Turn on amount protection" else "Turn off amount protection",
+            subtitle = "Confirm with your fingerprint or phone screen lock",
+            onAuthenticated = onAuthenticated,
+        )
+    }
+
+    private fun authenticateOnDevice(
+        title: String,
+        subtitle: String,
+        onAuthenticated: () -> Unit,
+    ) {
         val authenticators = BiometricManager.Authenticators.BIOMETRIC_WEAK or
             BiometricManager.Authenticators.DEVICE_CREDENTIAL
         when (BiometricManager.from(this).canAuthenticate(authenticators)) {
             BiometricManager.BIOMETRIC_SUCCESS -> {
                 onBalanceAuthenticated = onAuthenticated
                 val promptInfo = BiometricPrompt.PromptInfo.Builder()
-                    .setTitle("View your balance")
-                    .setSubtitle("Use your fingerprint or phone screen lock to reveal your amounts")
+                    .setTitle(title)
+                    .setSubtitle(subtitle)
                     .setAllowedAuthenticators(authenticators)
                     .build()
                 balanceBiometricPrompt.authenticate(promptInfo)
