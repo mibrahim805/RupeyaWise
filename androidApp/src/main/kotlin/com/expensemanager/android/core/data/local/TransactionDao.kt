@@ -12,8 +12,14 @@ interface TransactionDao {
     @Query("SELECT * FROM transactions WHERE ownerId = :ownerId ORDER BY timestampMillis DESC")
     fun observeAll(ownerId: String): Flow<List<TransactionEntity>>
 
+    @Query("SELECT * FROM transactions WHERE ownerId = :ownerId ORDER BY timestampMillis DESC")
+    suspend fun getAll(ownerId: String): List<TransactionEntity>
+
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insert(transaction: TransactionEntity): Long
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertAll(transactions: List<TransactionEntity>): List<Long>
 
     @Update
     suspend fun update(transaction: TransactionEntity): Int
