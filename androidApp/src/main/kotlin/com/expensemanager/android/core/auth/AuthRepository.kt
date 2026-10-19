@@ -13,18 +13,11 @@ class AuthRepository(private val sessionStore: EncryptedAuthSessionStore) {
     private val _session = MutableStateFlow(sessionStore.read())
     val session = _session.asStateFlow()
 
-    private val _isRestoring = MutableStateFlow(true)
-    val isRestoring = _isRestoring.asStateFlow()
-
     private val _resetLink = MutableStateFlow<PasswordResetLink?>(null)
     val resetLink = _resetLink.asStateFlow()
 
     suspend fun restoreSession() {
-        val current = _session.value
-        if (current == null) {
-            _isRestoring.value = false
-            return
-        }
+        val current = _session.value ?: return
         runCatching { request("me/", token = current.token) }
             .onSuccess { response ->
                 val user = response.getJSONObject("user").toAuthUser()
@@ -35,7 +28,6 @@ class AuthRepository(private val sessionStore: EncryptedAuthSessionStore) {
                     clearSession()
                 }
             }
-        _isRestoring.value = false
     }
 
     suspend fun login(identifier: String, password: String) {
@@ -95,7 +87,6 @@ class AuthRepository(private val sessionStore: EncryptedAuthSessionStore) {
             user = response.getJSONObject("user").toAuthUser(),
         )
         updateSession(session)
-        _isRestoring.value = false
     }
 
     private fun updateSession(session: AuthSession) {

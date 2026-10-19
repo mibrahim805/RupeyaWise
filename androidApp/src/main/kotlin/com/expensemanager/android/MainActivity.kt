@@ -8,9 +8,6 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.LaunchedEffect
@@ -70,7 +67,6 @@ class MainActivity : FragmentActivity() {
         setContent {
             val themeMode by application.themePreferences.theme.collectAsStateWithLifecycle(FinanceThemeMode.MIDNIGHT)
             val session by application.authRepository.session.collectAsStateWithLifecycle()
-            val isRestoring by application.authRepository.isRestoring.collectAsStateWithLifecycle()
             val resetLink by application.authRepository.resetLink.collectAsStateWithLifecycle()
             FinanceTheme(themeMode) {
                 var showCurrentRelease by rememberSaveable {
@@ -91,33 +87,31 @@ class MainActivity : FragmentActivity() {
                     }
                 }
                 when {
-                    isRestoring -> AuthLoadingScreen()
                     session == null -> AuthScreen(application.authRepository, resetLink)
                     else -> {
                         val authenticatedUser = session!!.user
-                        var isOwnerReady by remember(authenticatedUser.id) { mutableStateOf(false) }
+                        val financeRepository = remember(authenticatedUser.id) {
+                            application.financeRepository.apply {
+                                selectOwner(authenticatedUser.id.toString())
+                            }
+                        }
                         LaunchedEffect(authenticatedUser.id) {
-                            application.financeRepository.setOwner(authenticatedUser.id.toString())
-                            isOwnerReady = true
+                            financeRepository.claimLocalData(authenticatedUser.id.toString())
                         }
-                        if (!isOwnerReady) {
-                            AuthLoadingScreen()
-                        } else {
-                            val viewModel: FinanceViewModel = viewModel(
-                                key = "finance-${authenticatedUser.id}",
-                                factory = FinanceViewModelFactory(application.financeRepository),
-                            )
-                            ExpenseManagerApp(
-                                viewModel = viewModel,
-                                themeMode = themeMode,
-                                currentUser = authenticatedUser,
-                                onAuthenticateBalance = ::authenticateToRevealBalance,
-                                onLogout = { lifecycleScope.launch { runCatching { application.authRepository.logout() } } },
-                                onThemeChange = { selectedTheme ->
-                                    lifecycleScope.launch { application.themePreferences.setTheme(selectedTheme) }
-                                },
-                            )
-                        }
+                        val viewModel: FinanceViewModel = viewModel(
+                            key = "finance-${authenticatedUser.id}",
+                            factory = FinanceViewModelFactory(financeRepository),
+                        )
+                        ExpenseManagerApp(
+                            viewModel = viewModel,
+                            themeMode = themeMode,
+                            currentUser = authenticatedUser,
+                            onAuthenticateBalance = ::authenticateToRevealBalance,
+                            onLogout = { lifecycleScope.launch { runCatching { application.authRepository.logout() } } },
+                            onThemeChange = { selectedTheme ->
+                                lifecycleScope.launch { application.themePreferences.setTheme(selectedTheme) }
+                            },
+                        )
                     }
                 }
 
@@ -195,17 +189,5 @@ class MainActivity : FragmentActivity() {
             else ->
                 Toast.makeText(this, "Phone authentication is currently unavailable.", Toast.LENGTH_LONG).show()
         }
-    }
-}
-
-@Composable
-private fun AuthLoadingScreen() {
-    androidx.compose.foundation.layout.Box(
-        modifier = androidx.compose.ui.Modifier
-            .fillMaxSize()
-            .background(com.expensemanager.android.core.designsystem.financeColors().appBackground),
-        contentAlignment = androidx.compose.ui.Alignment.Center,
-    ) {
-        androidx.compose.material3.CircularProgressIndicator()
     }
 }

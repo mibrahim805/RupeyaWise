@@ -54,11 +54,15 @@ class FinanceRepository(
             }
         }
 
-    suspend fun setOwner(userId: String) {
+    fun selectOwner(userId: String) {
+        require(userId.isNotBlank())
+        ownerId.value = userId
+    }
+
+    suspend fun claimLocalData(userId: String) {
         require(userId.isNotBlank())
         transactionDao.claimLocalTransactions(userId, com.expensemanager.android.core.data.local.FinanceDatabase.LOCAL_OWNER_ID)
         budgetDao.claimLocalBudgets(userId, com.expensemanager.android.core.data.local.FinanceDatabase.LOCAL_OWNER_ID)
-        ownerId.value = userId
     }
 
     suspend fun addTransaction(draft: TransactionDraft): Boolean {

@@ -1,5 +1,17 @@
 package com.expensemanager.android.ui
 
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -67,6 +79,49 @@ private val topLevelDestinations = listOf(
     TopLevelDestination("insights", "Insights", Icons.Default.Analytics),
 )
 
+// Twice the usual 220 ms motion gives screen changes enough time to settle without
+// feeling floaty. Keeping every app-shell animation on the same timing curve also
+// prevents the navigation bar, FAB, and destination content from moving out of sync.
+private const val BaseTransitionDurationMillis = 220
+private const val SmoothTransitionDurationMillis = BaseTransitionDurationMillis * 2
+
+private fun <T> smoothTween() = tween<T>(
+    durationMillis = SmoothTransitionDurationMillis,
+    easing = FastOutSlowInEasing,
+)
+
+private fun AnimatedContentTransitionScope<*>.smoothEnterTransition(): EnterTransition =
+    fadeIn(animationSpec = smoothTween()) +
+        slideIntoContainer(
+            towards = AnimatedContentTransitionScope.SlideDirection.Left,
+            animationSpec = smoothTween(),
+            initialOffset = { distance -> distance / 12 },
+        )
+
+private fun AnimatedContentTransitionScope<*>.smoothExitTransition(): ExitTransition =
+    fadeOut(animationSpec = smoothTween()) +
+        slideOutOfContainer(
+            towards = AnimatedContentTransitionScope.SlideDirection.Left,
+            animationSpec = smoothTween(),
+            targetOffset = { distance -> distance / 12 },
+        )
+
+private fun AnimatedContentTransitionScope<*>.smoothPopEnterTransition(): EnterTransition =
+    fadeIn(animationSpec = smoothTween()) +
+        slideIntoContainer(
+            towards = AnimatedContentTransitionScope.SlideDirection.Right,
+            animationSpec = smoothTween(),
+            initialOffset = { distance -> distance / 12 },
+        )
+
+private fun AnimatedContentTransitionScope<*>.smoothPopExitTransition(): ExitTransition =
+    fadeOut(animationSpec = smoothTween()) +
+        slideOutOfContainer(
+            towards = AnimatedContentTransitionScope.SlideDirection.Right,
+            animationSpec = smoothTween(),
+            targetOffset = { distance -> distance / 12 },
+        )
+
 @Composable
 @androidx.compose.material3.ExperimentalMaterial3Api
 fun ExpenseManagerApp(
@@ -129,7 +184,11 @@ fun ExpenseManagerApp(
         containerColor = colors.background,
         snackbarHost = { SnackbarHost(snackbarHostState) },
         bottomBar = {
-            if (!isFullscreen) {
+            AnimatedVisibility(
+                visible = !isFullscreen,
+                enter = fadeIn(smoothTween()) + slideInVertically(smoothTween()) { height -> height / 2 },
+                exit = fadeOut(smoothTween()) + slideOutVertically(smoothTween()) { height -> height / 2 },
+            ) {
                 NavigationBar(containerColor = colors.surface) {
                     topLevelDestinations.forEach { destination ->
                         val selected = currentRoute == destination.route
@@ -157,7 +216,11 @@ fun ExpenseManagerApp(
             }
         },
         floatingActionButton = {
-            if (!isFullscreen) {
+            AnimatedVisibility(
+                visible = !isFullscreen,
+                enter = fadeIn(smoothTween()) + scaleIn(smoothTween(), initialScale = 0.82f),
+                exit = fadeOut(smoothTween()) + scaleOut(smoothTween(), targetScale = 0.82f),
+            ) {
                 FloatingActionButton(
                     onClick = { navController.navigate("add") },
                     containerColor = colors.primary,
@@ -177,6 +240,10 @@ fun ExpenseManagerApp(
             } else {
                 Modifier.padding(paddingValues)
             },
+            enterTransition = { smoothEnterTransition() },
+            exitTransition = { smoothExitTransition() },
+            popEnterTransition = { smoothPopEnterTransition() },
+            popExitTransition = { smoothPopExitTransition() },
         ) {
             composable("home") {
                 HomeScreen(

@@ -20,8 +20,9 @@ data class AppUpdateInfo(
 object CurrentRelease {
     val versionName: String = BuildConfig.VERSION_NAME
     val notes = listOf(
-        "Unlock protected amounts with your fingerprint, PIN, pattern, or phone password",
-        "Screen-lock authentication now works on phones without a fingerprint sensor",
+        "Smoother screen, navigation bar, and add-button animations",
+        "Open the home screen immediately from your saved session",
+        "Session validation and local data preparation now continue in the background",
     )
 }
 
