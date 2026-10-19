@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -79,47 +80,57 @@ private val topLevelDestinations = listOf(
     TopLevelDestination("insights", "Insights", Icons.Default.Analytics),
 )
 
-// Twice the usual 220 ms motion gives screen changes enough time to settle without
-// feeling floaty. Keeping every app-shell animation on the same timing curve also
-// prevents the navigation bar, FAB, and destination content from moving out of sync.
-private const val BaseTransitionDurationMillis = 220
-private const val SmoothTransitionDurationMillis = BaseTransitionDurationMillis * 2
+// Short, low-distance motion feels smoother on lower-end devices because the old
+// 440 ms transitions kept two full screens rendering together for too long.
+private const val ScreenEnterDurationMillis = 240
+private const val ScreenExitDurationMillis = 160
+private const val ChromeTransitionDurationMillis = 180
 
-private fun <T> smoothTween() = tween<T>(
-    durationMillis = SmoothTransitionDurationMillis,
+private fun <T> screenEnterTween() = tween<T>(
+    durationMillis = ScreenEnterDurationMillis,
+    easing = FastOutSlowInEasing,
+)
+
+private fun <T> screenExitTween() = tween<T>(
+    durationMillis = ScreenExitDurationMillis,
+    easing = FastOutLinearInEasing,
+)
+
+private fun <T> chromeTween() = tween<T>(
+    durationMillis = ChromeTransitionDurationMillis,
     easing = FastOutSlowInEasing,
 )
 
 private fun AnimatedContentTransitionScope<*>.smoothEnterTransition(): EnterTransition =
-    fadeIn(animationSpec = smoothTween()) +
+    fadeIn(animationSpec = screenEnterTween()) +
         slideIntoContainer(
             towards = AnimatedContentTransitionScope.SlideDirection.Left,
-            animationSpec = smoothTween(),
-            initialOffset = { distance -> distance / 12 },
+            animationSpec = screenEnterTween(),
+            initialOffset = { distance -> distance / 24 },
         )
 
 private fun AnimatedContentTransitionScope<*>.smoothExitTransition(): ExitTransition =
-    fadeOut(animationSpec = smoothTween()) +
+    fadeOut(animationSpec = screenExitTween()) +
         slideOutOfContainer(
             towards = AnimatedContentTransitionScope.SlideDirection.Left,
-            animationSpec = smoothTween(),
-            targetOffset = { distance -> distance / 12 },
+            animationSpec = screenExitTween(),
+            targetOffset = { distance -> distance / 24 },
         )
 
 private fun AnimatedContentTransitionScope<*>.smoothPopEnterTransition(): EnterTransition =
-    fadeIn(animationSpec = smoothTween()) +
+    fadeIn(animationSpec = screenEnterTween()) +
         slideIntoContainer(
             towards = AnimatedContentTransitionScope.SlideDirection.Right,
-            animationSpec = smoothTween(),
-            initialOffset = { distance -> distance / 12 },
+            animationSpec = screenEnterTween(),
+            initialOffset = { distance -> distance / 24 },
         )
 
 private fun AnimatedContentTransitionScope<*>.smoothPopExitTransition(): ExitTransition =
-    fadeOut(animationSpec = smoothTween()) +
+    fadeOut(animationSpec = screenExitTween()) +
         slideOutOfContainer(
             towards = AnimatedContentTransitionScope.SlideDirection.Right,
-            animationSpec = smoothTween(),
-            targetOffset = { distance -> distance / 12 },
+            animationSpec = screenExitTween(),
+            targetOffset = { distance -> distance / 24 },
         )
 
 @Composable
@@ -186,8 +197,8 @@ fun ExpenseManagerApp(
         bottomBar = {
             AnimatedVisibility(
                 visible = !isFullscreen,
-                enter = fadeIn(smoothTween()) + slideInVertically(smoothTween()) { height -> height / 2 },
-                exit = fadeOut(smoothTween()) + slideOutVertically(smoothTween()) { height -> height / 2 },
+                enter = fadeIn(chromeTween()) + slideInVertically(chromeTween()) { height -> height / 4 },
+                exit = fadeOut(chromeTween()) + slideOutVertically(chromeTween()) { height -> height / 4 },
             ) {
                 NavigationBar(containerColor = colors.surface) {
                     topLevelDestinations.forEach { destination ->
@@ -218,8 +229,8 @@ fun ExpenseManagerApp(
         floatingActionButton = {
             AnimatedVisibility(
                 visible = !isFullscreen,
-                enter = fadeIn(smoothTween()) + scaleIn(smoothTween(), initialScale = 0.82f),
-                exit = fadeOut(smoothTween()) + scaleOut(smoothTween(), targetScale = 0.82f),
+                enter = fadeIn(chromeTween()) + scaleIn(chromeTween(), initialScale = 0.9f),
+                exit = fadeOut(chromeTween()) + scaleOut(chromeTween(), targetScale = 0.9f),
             ) {
                 FloatingActionButton(
                     onClick = { navController.navigate("add") },
