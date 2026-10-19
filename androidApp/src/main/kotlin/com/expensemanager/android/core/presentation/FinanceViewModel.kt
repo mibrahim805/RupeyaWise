@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.expensemanager.android.core.data.FinanceRepository
+import com.expensemanager.android.core.data.BackupRestoreResult
 import com.expensemanager.android.core.model.CategoryBudget
 import com.expensemanager.android.core.model.FinanceCategory
 import com.expensemanager.android.core.model.TransactionDraft
@@ -116,6 +117,12 @@ class FinanceViewModel(private val repository: FinanceRepository) : ViewModel() 
                 .onFailure { _events.emit(FinanceEvent.Error("Could not delete this budget.")) }
         }
     }
+
+    suspend fun createEncryptedBackup(password: String): ByteArray =
+        repository.createEncryptedBackup(password)
+
+    suspend fun restoreEncryptedBackup(bytes: ByteArray, password: String): BackupRestoreResult =
+        repository.restoreEncryptedBackup(bytes, password)
 }
 
 class FinanceViewModelFactory(

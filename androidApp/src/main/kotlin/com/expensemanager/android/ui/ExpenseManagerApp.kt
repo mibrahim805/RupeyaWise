@@ -285,6 +285,8 @@ fun ExpenseManagerApp(
                     onLogout = onLogout,
                     onOpenWhatsNew = { navController.navigate("whats-new") },
                     onThemeSelected = onThemeChange,
+                    onCreateBackup = viewModel::createEncryptedBackup,
+                    onRestoreBackup = viewModel::restoreEncryptedBackup,
                 )
             }
             composable("whats-new") {
