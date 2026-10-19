@@ -217,9 +217,9 @@ fun SettingsScreen(
                 modifier = Modifier.fillMaxWidth().padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                Text("Encrypted Gmail backup", fontWeight = FontWeight.SemiBold)
+                Text("Encrypted app data backup", fontWeight = FontWeight.SemiBold)
                 Text(
-                    "Create a backup only when you want one. RupeyaWise encrypts your transactions and budgets before you send the file to your Gmail account.",
+                    "Create a backup only when you want one. RupeyaWise encrypts your locally stored financial data—transactions, budgets, and account details—before you send the file to Gmail.",
                     color = colors.secondaryText,
                     style = MaterialTheme.typography.bodyMedium,
                 )
@@ -230,7 +230,7 @@ fun SettingsScreen(
                 ) {
                     Icon(Icons.Default.CloudUpload, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.size(8.dp))
-                    Text("Back up with Gmail")
+                    Text("Back up app data with Gmail")
                 }
                 OutlinedButton(
                     onClick = { restoreLauncher.launch(arrayOf("application/octet-stream", "application/json")) },
