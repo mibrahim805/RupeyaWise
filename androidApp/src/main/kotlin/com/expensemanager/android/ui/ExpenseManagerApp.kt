@@ -139,7 +139,9 @@ fun ExpenseManagerApp(
     viewModel: FinanceViewModel,
     themeMode: FinanceThemeMode,
     currentUser: AuthUser,
+    amountProtectionEnabled: Boolean,
     onAuthenticateBalance: (() -> Unit) -> Unit,
+    onAmountProtectionChange: (Boolean) -> Unit,
     onLogout: () -> Unit,
     onThemeChange: (FinanceThemeMode) -> Unit,
 ) {
@@ -147,7 +149,7 @@ fun ExpenseManagerApp(
     val transactions by viewModel.transactions.collectAsStateWithLifecycle()
     val budgets by viewModel.budgets.collectAsStateWithLifecycle()
     val isSaving by viewModel.isSaving.collectAsStateWithLifecycle()
-    var amountsVisible by remember(currentUser.id) { mutableStateOf(false) }
+    var amountsVisible by remember(currentUser.id) { mutableStateOf(!amountProtectionEnabled) }
     val lifecycleOwner = LocalLifecycleOwner.current
     val snackbarHostState = remember { SnackbarHostState() }
     val backStackEntry by navController.currentBackStackEntryAsState()
@@ -158,14 +160,20 @@ fun ExpenseManagerApp(
     val toggleAmountsVisibility = {
         if (amountsVisible) {
             amountsVisible = false
+        } else if (!amountProtectionEnabled) {
+            amountsVisible = true
         } else {
             onAuthenticateBalance { amountsVisible = true }
         }
     }
 
-    DisposableEffect(lifecycleOwner) {
+    LaunchedEffect(currentUser.id, amountProtectionEnabled) {
+        amountsVisible = !amountProtectionEnabled
+    }
+
+    DisposableEffect(lifecycleOwner, amountProtectionEnabled) {
         val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_STOP) amountsVisible = false
+            if (event == Lifecycle.Event.ON_STOP && amountProtectionEnabled) amountsVisible = false
         }
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
@@ -292,10 +300,12 @@ fun ExpenseManagerApp(
                 SettingsScreen(
                     selectedTheme = themeMode,
                     currentUser = currentUser,
+                    amountProtectionEnabled = amountProtectionEnabled,
                     onBack = { navController.popBackStack() },
                     onLogout = onLogout,
                     onOpenWhatsNew = { navController.navigate("whats-new") },
                     onThemeSelected = onThemeChange,
+                    onAmountProtectionChange = onAmountProtectionChange,
                     onCreateBackup = viewModel::createEncryptedBackup,
                     onRestoreBackup = viewModel::restoreEncryptedBackup,
                 )
