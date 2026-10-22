@@ -1,21 +1,82 @@
 {% extends "base.html" %}
 
-{% block content %}
-<h2 class="mb-4">{% if form.instance.pk %}Edit Expense{% else %}Add Expense{% endif %}</h2>
+{% block title %}{% if form.instance.pk %}Edit expense{% else %}Add expense{% endif %} | RupeyaWise{% endblock %}
 
-<form method="post" novalidate>
-    {% csrf_token %}
-    {{ form.non_field_errors }}
-    {% for field in form %}
-        <div class="mb-3">
-            {{ field.label_tag }}
-            {{ field }}
-            {% for error in field.errors %}
-                <div class="text-danger small">{{ error }}</div>
-            {% endfor %}
-        </div>
-    {% endfor %}
-    <button type="submit" class="btn btn-primary">Save Expense</button>
-    <a href="{% url 'expenses:expense_list' %}" class="btn btn-secondary">Cancel</a>
-</form>
+{% block extra_head %}
+<style>
+    .form-page { max-width:980px; margin:0 auto; }
+    .page-heading { margin-bottom:2rem; }
+    .eyebrow { margin:0 0 .55rem; color:var(--green); font-size:.75rem; font-weight:700; letter-spacing:.14em; text-transform:uppercase; }
+    .page-heading h1 { margin:0; font:700 clamp(2rem,4vw,3rem) "Space Grotesk",sans-serif; letter-spacing:-.06em; }
+    .page-heading p { margin:.65rem 0 0; color:var(--muted); }
+    .form-layout { display:grid; grid-template-columns:minmax(0,1fr) 280px; gap:1rem; align-items:start; }
+    .expense-card,.tip-card { border:1px solid var(--line); border-radius:1rem; background:#fff; box-shadow:0 8px 25px rgba(27,65,45,.04); }
+    .expense-card { padding:1.6rem; }
+    .tip-card { padding:1.45rem; color:#fff; background:linear-gradient(145deg,#0d6545,#157f58); }
+    .tip-icon { display:grid; width:2.4rem; height:2.4rem; margin-bottom:1.2rem; place-items:center; border-radius:.7rem; color:var(--green-dark); background:#d9f4e4; font-size:1.2rem; font-weight:700; }
+    .tip-card h2 { margin:0 0 .65rem; font:700 1.15rem "Space Grotesk",sans-serif; }
+    .tip-card p { margin:0; color:rgba(255,255,255,.76); font-size:.86rem; line-height:1.65; }
+    .tip-list { margin:1.3rem 0 0; padding:1.2rem 0 0 1.1rem; border-top:1px solid rgba(255,255,255,.18); color:rgba(255,255,255,.8); font-size:.8rem; line-height:1.8; }
+    .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+    .field { margin-bottom:1rem; }
+    .field.full { grid-column:1 / -1; }
+    .field label { display:block; margin-bottom:.45rem; font-size:.86rem; font-weight:700; }
+    .field input,.field select,.field textarea { width:100%; border:1px solid var(--line); border-radius:.65rem; color:var(--ink); background:#fbfdfb; font:inherit; outline:none; transition:border-color .2s,box-shadow .2s; }
+    .field input,.field select { min-height:2.9rem; padding:.75rem .9rem; }
+    .field textarea { min-height:7rem; padding:.8rem .9rem; resize:vertical; }
+    .field input:focus,.field select:focus,.field textarea:focus { border-color:var(--green); box-shadow:0 0 0 4px rgba(21,127,88,.12); }
+    .field ul { margin:.4rem 0 0; padding-left:1.1rem; color:#b33737; font-size:.8rem; }
+    .error-summary { margin-bottom:1.2rem; padding:.85rem 1rem; border:1px solid #f0caca; border-radius:.7rem; color:#9a2d2d; background:#fff5f5; font-size:.88rem; }
+    .form-actions { display:flex; align-items:center; gap:.7rem; margin-top:.5rem; padding-top:1.2rem; border-top:1px solid var(--line); }
+    .primary-button,.secondary-button { display:inline-flex; align-items:center; justify-content:center; min-height:2.8rem; padding:.7rem 1.1rem; border-radius:.6rem; font-size:.88rem; font-weight:700; text-decoration:none; cursor:pointer; }
+    .primary-button { border:0; color:#fff; background:var(--green); }
+    .primary-button:hover { background:var(--green-dark); }
+    .secondary-button { border:1px solid var(--line); color:var(--muted); background:#fff; }
+    .secondary-button:hover { color:var(--ink); border-color:#c9d7ce; }
+    @media (max-width:760px) { .form-layout{grid-template-columns:1fr;} .tip-card{order:-1;} }
+    @media (max-width:520px) { .form-grid{grid-template-columns:1fr;} .field.full{grid-column:auto;} .expense-card{padding:1.2rem;} .form-actions{flex-direction:column-reverse; align-items:stretch;} }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="form-page">
+    <header class="page-heading">
+        <p class="eyebrow">Keep your records up to date</p>
+        <h1>{% if form.instance.pk %}Edit expense{% else %}Add an expense{% endif %}</h1>
+        <p>Capture the details now so your financial overview stays accurate.</p>
+    </header>
+
+    <div class="form-layout">
+        <section class="expense-card">
+            {% if form.non_field_errors %}<div class="error-summary" role="alert">{{ form.non_field_errors|striptags }}</div>{% endif %}
+            <form method="post" novalidate>
+                {% csrf_token %}
+                <div class="form-grid">
+                    {% for field in form %}
+                        <div class="field {% if field.name == 'description' %}full{% endif %}">
+                            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.help_text %}<div class="help">{{ field.help_text|safe }}</div>{% endif %}
+                            {% for error in field.errors %}<ul><li>{{ error }}</li></ul>{% endfor %}
+                        </div>
+                    {% endfor %}
+                </div>
+                <div class="form-actions">
+                    <a class="secondary-button" href="{% url 'expenses:expense_list' %}">Cancel</a>
+                    <button class="primary-button" type="submit">{% if form.instance.pk %}Save changes{% else %}Save expense{% endif %}</button>
+                </div>
+            </form>
+        </section>
+        <aside class="tip-card">
+            <div class="tip-icon">₹</div>
+            <h2>Small details add up</h2>
+            <p>A clear description makes it easier to understand your spending later.</p>
+            <ul class="tip-list">
+                <li>Choose the closest category</li>
+                <li>Use the actual amount paid</li>
+                <li>Set the date the expense happened</li>
+            </ul>
+        </aside>
+    </div>
+</div>
 {% endblock %}
