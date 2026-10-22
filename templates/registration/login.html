@@ -1,48 +1,79 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Login - RupeyaWise</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Sign in | RupeyaWise</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --ink:#17211b; --muted:#718078; --green:#157f58; --green-dark:#0d6545; --cream:#f7faf7; --line:#dce6df; }
+        * { box-sizing:border-box; }
+        body { min-height:100vh; margin:0; color:var(--ink); background:var(--cream); font-family:"DM Sans",sans-serif; }
+        .auth-shell { display:grid; grid-template-columns:minmax(280px,.9fr) minmax(360px,1.1fr); min-height:100vh; }
+        .brand-panel { position:relative; display:flex; align-items:center; overflow:hidden; padding:clamp(2.5rem,7vw,7rem); color:#fff; background:linear-gradient(145deg,#0d6545 0%,#157f58 60%,#35a36d 100%); }
+        .brand-panel::before,.brand-panel::after { position:absolute; border:1px solid rgba(255,255,255,.17); border-radius:50%; content:""; }
+        .brand-panel::before { width:31rem; height:31rem; right:-15rem; top:-7rem; }
+        .brand-panel::after { width:21rem; height:21rem; left:-12rem; bottom:-6rem; }
+        .brand-content { position:relative; z-index:1; max-width:410px; }
+        .logo { display:inline-flex; align-items:center; gap:.65rem; margin-bottom:4rem; font:700 1.3rem "Space Grotesk",sans-serif; letter-spacing:-.03em; }
+        .logo-mark { display:grid; width:2.2rem; height:2.2rem; place-items:center; border-radius:.7rem; color:var(--green-dark); background:#d9f4e4; font-size:1.25rem; }
+        .brand-content h1 { margin:0 0 1.25rem; font:700 clamp(2.3rem,4vw,4rem)/1.05 "Space Grotesk",sans-serif; letter-spacing:-.06em; }
+        .brand-content p { max-width:330px; margin:0; color:rgba(255,255,255,.78); font-size:1.05rem; line-height:1.7; }
+        .form-panel { display:flex; align-items:center; justify-content:center; padding:2rem; background:#fff; }
+        .form-wrap { width:min(100%,420px); }
+        .eyebrow { margin:0 0 .65rem; color:var(--green); font-size:.75rem; font-weight:700; letter-spacing:.14em; text-transform:uppercase; }
+        .form-wrap h2 { margin:0; font:700 clamp(1.8rem,3vw,2.35rem) "Space Grotesk",sans-serif; letter-spacing:-.05em; }
+        .subtitle { margin:.7rem 0 2rem; color:var(--muted); }
+        .alert { margin-bottom:1.25rem; padding:.85rem 1rem; border:1px solid #f0caca; border-radius:.75rem; color:#9a2d2d; background:#fff5f5; font-size:.9rem; }
+        .field { margin-bottom:1.15rem; }
+        .field label { display:block; margin-bottom:.45rem; font-size:.88rem; font-weight:600; }
+        .field input { width:100%; padding:.85rem 1rem; border:1px solid var(--line); border-radius:.7rem; color:var(--ink); background:#fbfdfb; font:inherit; outline:none; transition:border-color .2s,box-shadow .2s; }
+        .field input:focus { border-color:var(--green); box-shadow:0 0 0 4px rgba(21,127,88,.12); }
+        .field ul { margin:.45rem 0 0; padding-left:1.1rem; color:#b33737; font-size:.82rem; }
+        .form-meta { display:flex; justify-content:flex-end; margin:-.25rem 0 1.5rem; }
+        .link { color:var(--green-dark); font-size:.88rem; font-weight:600; text-decoration:none; }
+        .link:hover { text-decoration:underline; }
+        .submit { width:100%; padding:.9rem 1rem; border:0; border-radius:.7rem; color:#fff; background:var(--green); font:700 .96rem "DM Sans",sans-serif; cursor:pointer; transition:background .2s,transform .2s; }
+        .submit:hover { background:var(--green-dark); transform:translateY(-1px); }
+        .signup { margin:1.7rem 0 0; color:var(--muted); text-align:center; font-size:.9rem; }
+        @media (max-width:760px) { .auth-shell{display:block;} .brand-panel{min-height:280px;padding:2rem;} .logo{margin-bottom:2.3rem;} .brand-content h1{font-size:2.25rem;} .form-panel{min-height:calc(100vh - 280px);padding:2.5rem 1.5rem;} }
+    </style>
 </head>
 <body>
-<div class="container mt-5" style="max-width: 500px;">
-    <h2 class="mb-4">Login</h2>
-
-    <form method="post" novalidate>
-        {% csrf_token %}
-        {{ form.as_p }}
-
-{#        <!-- Form-wide errors -->#}
-{#        {% if form.non_field_errors %}#}
-{#            <div class="alert alert-danger">#}
-{#                {% for error in form.non_field_errors %}#}
-{#                    <div>{{ error }}</div>#}
-{#                {% endfor %}#}
-{#            </div>#}
-{#        {% endif %}#}
-{##}
-{#        <!-- Username field -->#}
-{#        <div class="mb-3">#}
-{#            {{ form.username.label_tag }}#}
-{#            {{ form.username }}#}
-{#            {% for error in form.username.errors %}#}
-{#                <div class="text-danger">{{ error }}</div>#}
-{#            {% endfor %}#}
-{#        </div>#}
-{##}
-{#        <!-- Password field -->#}
-{#        <div class="mb-3">#}
-{#            {{ form.password.label_tag }}#}
-{#            {{ form.password }}#}
-{#            {% for error in form.password.errors %}#}
-{#                <div class="text-danger">{{ error }}</div>#}
-{#            {% endfor %}#}
-{#        </div>#}
-
-        <button type="submit" class="btn btn-primary w-100">Login</button>
-    </form>
-  <a href="{% url 'expenses:register' %}" >register here</a>
-  <a href="{% url 'password_reset' %}" class="d-block mt-3">Forgot your password?</a>
-</div>
+    <main class="auth-shell">
+        <section class="brand-panel" aria-label="RupeyaWise introduction">
+            <div class="brand-content">
+                <div class="logo"><span class="logo-mark">₹</span> RupeyaWise</div>
+                <h1>Your money, made clearer.</h1>
+                <p>Keep your spending organized, understand your habits, and make every rupee count.</p>
+            </div>
+        </section>
+        <section class="form-panel">
+            <div class="form-wrap">
+                <p class="eyebrow">Welcome back</p>
+                <h2>Sign in to your account</h2>
+                <p class="subtitle">Pick up where you left off.</p>
+                {% if form.non_field_errors %}<div class="alert" role="alert">{{ form.non_field_errors|striptags }}</div>{% endif %}
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    <div class="field">
+                        <label for="{{ form.username.id_for_label }}">Username</label>
+                        {{ form.username }}
+                        {% for error in form.username.errors %}<ul><li>{{ error }}</li></ul>{% endfor %}
+                    </div>
+                    <div class="field">
+                        <label for="{{ form.password.id_for_label }}">Password</label>
+                        {{ form.password }}
+                        {% for error in form.password.errors %}<ul><li>{{ error }}</li></ul>{% endfor %}
+                    </div>
+                    <div class="form-meta"><a class="link" href="{% url 'password_reset' %}">Forgot password?</a></div>
+                    <button class="submit" type="submit">Sign in</button>
+                </form>
+                <p class="signup">New to RupeyaWise? <a class="link" href="{% url 'expenses:register' %}">Create an account</a></p>
+            </div>
+        </section>
+    </main>
 </body>
 </html>
