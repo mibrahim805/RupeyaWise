@@ -1,56 +1,86 @@
 {% extends "base.html" %}
 
+{% block title %}Your expenses | RupeyaWise{% endblock %}
+
+{% block extra_head %}
+<style>
+    .list-heading { display:flex; align-items:flex-end; justify-content:space-between; gap:1.5rem; margin-bottom:2rem; }
+    .eyebrow { margin:0 0 .55rem; color:var(--green); font-size:.75rem; font-weight:700; letter-spacing:.14em; text-transform:uppercase; }
+    .list-heading h1 { margin:0; font:700 clamp(2rem,4vw,3rem) "Space Grotesk",sans-serif; letter-spacing:-.06em; }
+    .list-heading p { margin:.65rem 0 0; color:var(--muted); }
+    .primary-button { display:inline-flex; align-items:center; padding:.8rem 1.1rem; border-radius:.65rem; color:#fff; background:var(--green); font-size:.9rem; font-weight:700; text-decoration:none; white-space:nowrap; }
+    .primary-button:hover { color:#fff; background:var(--green-dark); }
+    .filter-card,.table-card { border:1px solid var(--line); border-radius:1rem; background:#fff; box-shadow:0 8px 25px rgba(27,65,45,.04); }
+    .filter-card { margin-bottom:1rem; padding:1.25rem 1.4rem; }
+    .filter-title { margin:0 0 1rem; font:700 1rem "Space Grotesk",sans-serif; }
+    .filters { display:grid; grid-template-columns:1fr 1fr 1.2fr auto; align-items:end; gap:.8rem; }
+    .filter-field label { display:block; margin-bottom:.4rem; color:var(--muted); font-size:.75rem; font-weight:700; letter-spacing:.04em; text-transform:uppercase; }
+    .filter-field input,.filter-field select { width:100%; min-height:2.7rem; padding:.65rem .75rem; border:1px solid var(--line); border-radius:.6rem; color:var(--ink); background:#fbfdfb; font:inherit; outline:none; }
+    .filter-field input:focus,.filter-field select:focus { border-color:var(--green); box-shadow:0 0 0 4px rgba(21,127,88,.12); }
+    .filter-actions { display:flex; gap:.5rem; }
+    .filter-button,.reset-button { min-height:2.7rem; padding:.65rem .9rem; border-radius:.6rem; font-size:.84rem; font-weight:700; text-decoration:none; cursor:pointer; }
+    .filter-button { border:0; color:#fff; background:var(--green); }
+    .filter-button:hover { background:var(--green-dark); }
+    .reset-button { border:1px solid var(--line); color:var(--muted); background:#fff; }
+    .reset-button:hover { color:var(--ink); border-color:#c9d7ce; }
+    .total-strip { display:flex; align-items:center; justify-content:space-between; gap:1rem; margin:0 0 1rem; padding:1rem 1.35rem; border:1px solid #cfe8d9; border-radius:.8rem; color:var(--green-dark); background:var(--pale); }
+    .total-strip span { color:#47735e; font-size:.85rem; }
+    .total-strip strong { font:700 1.25rem "Space Grotesk",sans-serif; }
+    .table-card { overflow:hidden; }
+    .expense-table { width:100%; border-collapse:collapse; font-size:.88rem; }
+    .expense-table th { padding:1rem 1.2rem; color:var(--muted); background:#fbfdfb; font-size:.72rem; font-weight:700; letter-spacing:.06em; text-align:left; text-transform:uppercase; }
+    .expense-table td { padding:1rem 1.2rem; border-top:1px solid #eef3ef; vertical-align:middle; }
+    .expense-table tr:hover td { background:#fcfefc; }
+    .category { display:inline-flex; padding:.35rem .6rem; border-radius:999px; color:var(--green-dark); background:var(--pale); font-size:.76rem; font-weight:700; }
+    .description { max-width:240px; color:var(--muted); }
+    .amount { color:var(--green-dark); font-weight:700; white-space:nowrap; }
+    .actions { display:flex; justify-content:flex-end; gap:.45rem; }
+    .action { padding:.42rem .65rem; border:1px solid var(--line); border-radius:.5rem; color:var(--muted); font-size:.76rem; font-weight:700; text-decoration:none; }
+    .action:hover { color:var(--ink); border-color:#c9d7ce; }
+    .action.delete:hover { color:#a63a3a; border-color:#edcaca; background:#fff7f7; }
+    .empty { padding:4rem 1rem; color:var(--muted); text-align:center; }
+    .empty-icon { display:grid; width:3rem; height:3rem; margin:0 auto .8rem; place-items:center; border-radius:50%; color:var(--green); background:var(--pale); font-size:1.3rem; }
+    .empty h2 { margin:0 0 .4rem; color:var(--ink); font:700 1.15rem "Space Grotesk",sans-serif; }
+    .empty p { margin:0 0 1.2rem; font-size:.88rem; }
+    @media (max-width:800px) { .filters{grid-template-columns:1fr 1fr;} .filter-actions{grid-column:1 / -1;} }
+    @media (max-width:620px) { .list-heading{align-items:flex-start; flex-direction:column;} .filters{grid-template-columns:1fr;} .filter-actions{grid-column:auto;} .table-card{overflow-x:auto;} .expense-table{min-width:650px;} }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2>Your Expenses</h2>
-    <a href="{% url 'expenses:add_expense' %}" class="btn btn-primary">Add Expense</a>
-</div>
+<header class="list-heading">
+    <div>
+        <p class="eyebrow">Your spending history</p>
+        <h1>Your expenses</h1>
+        <p>Review, filter, and keep track of every expense.</p>
+    </div>
+    <a class="primary-button" href="{% url 'expenses:add_expense' %}">+ Add expense</a>
+</header>
 
-<form method="get" class="row g-3 mb-4">
-    <div class="col-md-3">
-        <label for="start_date" class="form-label">From</label>
-        <input type="date" name="start_date" id="start_date" class="form-control" value="{{ start_date }}">
-    </div>
-    <div class="col-md-3">
-        <label for="end_date" class="form-label">To</label>
-        <input type="date" name="end_date" id="end_date" class="form-control" value="{{ end_date }}">
-    </div>
-    <div class="col-md-3">
-        <label for="category" class="form-label">Category</label>
-        <select name="category" id="category" class="form-select">
-            <option value="">All categories</option>
-            {% for value, label in categories %}
-                <option value="{{ value }}" {% if selected_category == value %}selected{% endif %}>{{ label }}</option>
+<section class="filter-card">
+    <h2 class="filter-title">Filter expenses</h2>
+    <form method="get" class="filters">
+        <div class="filter-field"><label for="start_date">From</label><input type="date" name="start_date" id="start_date" value="{{ start_date }}"></div>
+        <div class="filter-field"><label for="end_date">To</label><input type="date" name="end_date" id="end_date" value="{{ end_date }}"></div>
+        <div class="filter-field"><label for="category">Category</label><select name="category" id="category"><option value="">All categories</option>{% for value, label in categories %}<option value="{{ value }}" {% if selected_category == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
+        <div class="filter-actions"><button class="filter-button" type="submit">Apply</button><a class="reset-button" href="{% url 'expenses:expense_list' %}">Reset</a></div>
+    </form>
+</section>
+
+<div class="total-strip"><span>Total across filtered expenses</span><strong>Rs. {{ total }}</strong></div>
+
+<section class="table-card">
+    {% if expenses %}
+    <table class="expense-table">
+        <thead><tr><th>Date</th><th>Category</th><th>Description</th><th>Amount</th><th><span class="visually-hidden">Actions</span></th></tr></thead>
+        <tbody>
+            {% for expense in expenses %}
+            <tr><td>{{ expense.date }}</td><td><span class="category">{{ expense.get_category_display }}</span></td><td class="description">{{ expense.description|default:"No description" }}</td><td class="amount">Rs. {{ expense.amount }}</td><td><div class="actions"><a class="action" href="{% url 'expenses:update_expense' expense.id %}">Edit</a><a class="action delete" href="{% url 'expenses:delete_expense' expense.id %}">Delete</a></div></td></tr>
             {% endfor %}
-        </select>
-    </div>
-    <div class="col-md-3 align-self-end">
-        <button type="submit" class="btn btn-primary">Filter</button>
-        <a href="{% url 'expenses:expense_list' %}" class="btn btn-secondary">Reset</a>
-    </div>
-</form>
-
-<div class="alert alert-info">Total: <strong>Rs. {{ total }}</strong></div>
-
-<table class="table table-striped table-bordered">
-    <thead>
-        <tr><th>Date</th><th>Category</th><th>Description</th><th>Amount</th><th>Actions</th></tr>
-    </thead>
-    <tbody>
-        {% for expense in expenses %}
-        <tr>
-            <td>{{ expense.date }}</td>
-            <td>{{ expense.get_category_display }}</td>
-            <td>{{ expense.description|default:"—" }}</td>
-            <td>Rs. {{ expense.amount }}</td>
-            <td>
-                <a href="{% url 'expenses:update_expense' expense.id %}" class="btn btn-sm btn-warning">Edit</a>
-                <a href="{% url 'expenses:delete_expense' expense.id %}" class="btn btn-sm btn-danger">Delete</a>
-            </td>
-        </tr>
-        {% empty %}
-        <tr><td colspan="5" class="text-center">No expenses found.</td></tr>
-        {% endfor %}
-    </tbody>
-</table>
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty"><div class="empty-icon">+</div><h2>No expenses found</h2><p>Start recording your spending to see it here.</p><a class="primary-button" href="{% url 'expenses:add_expense' %}">Add your first expense</a></div>
+    {% endif %}
+</section>
 {% endblock %}
