@@ -6,6 +6,7 @@ local.properties
 __pycache__/
 *.py[cod]
 db.sqlite3
+staticfiles/
 .idea/
 FETCH_HEAD
 .env
