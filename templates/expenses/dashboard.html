@@ -1,69 +1,62 @@
 {% extends "base.html" %}
-
+{% block title %}Overview | RupeyaWise{% endblock %}
+{% block extra_head %}
+<style>
+    .welcome { display:flex; align-items:flex-end; justify-content:space-between; gap:1.5rem; margin-bottom:2rem; }
+    .eyebrow { margin:0 0 .55rem; color:var(--green); font-size:.75rem; font-weight:700; letter-spacing:.14em; text-transform:uppercase; }
+    .welcome h1 { margin:0; font:700 clamp(2rem,4vw,3.25rem) "Space Grotesk",sans-serif; letter-spacing:-.06em; }
+    .welcome-copy { margin:.65rem 0 0; color:var(--muted); }
+    .primary-button { display:inline-flex; align-items:center; gap:.45rem; padding:.8rem 1.1rem; border-radius:.65rem; color:#fff; background:var(--green); font-size:.9rem; font-weight:700; text-decoration:none; white-space:nowrap; }
+    .primary-button:hover { color:#fff; background:var(--green-dark); }
+    .stats { display:grid; grid-template-columns:repeat(2,1fr); gap:1rem; margin-bottom:2.2rem; }
+    .stat-card { position:relative; overflow:hidden; padding:1.35rem 1.5rem; border:1px solid var(--line); border-radius:1rem; background:#fff; box-shadow:0 8px 25px rgba(27,65,45,.04); }
+    .stat-card::after { position:absolute; width:7rem; height:7rem; right:-3rem; bottom:-3.5rem; border-radius:50%; background:var(--pale); content:""; }
+    .stat-label { color:var(--muted); font-size:.85rem; font-weight:600; }
+    .stat-value { margin-top:.35rem; font:700 clamp(1.7rem,3vw,2.3rem) "Space Grotesk",sans-serif; letter-spacing:-.05em; }
+    .stat-icon { display:grid; width:2.2rem; height:2.2rem; margin-bottom:1.2rem; place-items:center; border-radius:.65rem; color:var(--green-dark); background:var(--pale); font-weight:700; }
+    .content-grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+    .panel { min-width:0; padding:1.35rem 1.5rem 1.5rem; border:1px solid var(--line); border-radius:1rem; background:#fff; box-shadow:0 8px 25px rgba(27,65,45,.04); }
+    .panel-header { display:flex; align-items:center; justify-content:space-between; gap:1rem; margin-bottom:1.2rem; }
+    .panel h2 { margin:0; font:700 1.15rem "Space Grotesk",sans-serif; letter-spacing:-.03em; }
+    .panel-link { color:var(--green-dark); font-size:.8rem; font-weight:700; text-decoration:none; }
+    .panel-link:hover { text-decoration:underline; }
+    .data-table { width:100%; border-collapse:collapse; font-size:.86rem; }
+    .data-table th { padding:.65rem .25rem; border-bottom:1px solid var(--line); color:var(--muted); font-size:.72rem; font-weight:700; letter-spacing:.05em; text-align:left; text-transform:uppercase; }
+    .data-table td { padding:.85rem .25rem; border-bottom:1px solid #eef3ef; }
+    .data-table tr:last-child td { border-bottom:0; }
+    .amount { color:var(--green-dark); font-weight:700; text-align:right; }
+    .empty { padding:2rem 1rem; color:var(--muted); text-align:center; font-size:.88rem; }
+    .empty-icon { display:grid; width:2.5rem; height:2.5rem; margin:0 auto .7rem; place-items:center; border-radius:50%; color:var(--green); background:var(--pale); font-size:1.1rem; }
+    @media (max-width:700px) { .welcome{align-items:flex-start; flex-direction:column;} .stats,.content-grid{grid-template-columns:1fr;} .panel{padding:1.2rem;} }
+</style>
+{% endblock %}
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2>Expense Dashboard</h2>
-    <a href="{% url 'expenses:add_expense' %}" class="btn btn-primary">Add Expense</a>
-</div>
-
-<div class="row g-3 mb-4">
-    <div class="col-md-6">
-        <div class="card shadow-sm">
-            <div class="card-body">
-                <div class="text-muted">Total Expenses</div>
-                <h3>Rs. {{ total_expenses }}</h3>
-            </div>
-        </div>
+<section class="welcome">
+    <div>
+        <p class="eyebrow">Your financial overview</p>
+        <h1>Good to see you, {{ request.user.first_name|default:request.user.username }}.</h1>
+        <p class="welcome-copy">Here’s a clear look at where your money is going.</p>
     </div>
-    <div class="col-md-6">
-        <div class="card shadow-sm">
-            <div class="card-body">
-                <div class="text-muted">Number of Expenses</div>
-                <h3>{{ expense_count }}</h3>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="row g-4">
-    <div class="col-lg-6">
-        <h4>Spending by Category</h4>
-        <table class="table table-striped">
-            <thead>
-                <tr><th>Category</th><th>Count</th><th>Total</th></tr>
-            </thead>
-            <tbody>
-                {% for item in category_totals %}
-                <tr>
-                    <td>{{ item.category|title }}</td>
-                    <td>{{ item.count }}</td>
-                    <td>Rs. {{ item.total }}</td>
-                </tr>
-                {% empty %}
-                <tr><td colspan="3">No expenses recorded yet.</td></tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-
-    <div class="col-lg-6">
-        <h4>Recent Expenses</h4>
-        <table class="table table-striped">
-            <thead>
-                <tr><th>Date</th><th>Category</th><th>Amount</th></tr>
-            </thead>
-            <tbody>
-                {% for expense in recent_expenses %}
-                <tr>
-                    <td>{{ expense.date }}</td>
-                    <td>{{ expense.get_category_display }}</td>
-                    <td>Rs. {{ expense.amount }}</td>
-                </tr>
-                {% empty %}
-                <tr><td colspan="3">No expenses recorded yet.</td></tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-</div>
+    <a class="primary-button" href="{% url 'expenses:add_expense' %}">+ Add expense</a>
+</section>
+<section class="stats" aria-label="Expense summary">
+    <article class="stat-card"><div class="stat-icon">₹</div><div class="stat-label">Total expenses</div><div class="stat-value">Rs. {{ total_expenses }}</div></article>
+    <article class="stat-card"><div class="stat-icon">#</div><div class="stat-label">Recorded expenses</div><div class="stat-value">{{ expense_count }}</div></article>
+</section>
+<section class="content-grid">
+    <article class="panel">
+        <div class="panel-header"><h2>Spending by category</h2><a class="panel-link" href="{% url 'expenses:expense_list' %}">View all</a></div>
+        <table class="data-table"><thead><tr><th>Category</th><th>Count</th><th class="amount">Total</th></tr></thead><tbody>
+            {% for item in category_totals %}<tr><td>{{ item.category|title }}</td><td>{{ item.count }}</td><td class="amount">Rs. {{ item.total }}</td></tr>
+            {% empty %}<tr><td colspan="3"><div class="empty"><div class="empty-icon">+</div>No spending categories yet.</div></td></tr>{% endfor %}
+        </tbody></table>
+    </article>
+    <article class="panel">
+        <div class="panel-header"><h2>Recent expenses</h2><a class="panel-link" href="{% url 'expenses:expense_list' %}">View all</a></div>
+        <table class="data-table"><thead><tr><th>Date</th><th>Category</th><th class="amount">Amount</th></tr></thead><tbody>
+            {% for expense in recent_expenses %}<tr><td>{{ expense.date }}</td><td>{{ expense.get_category_display }}</td><td class="amount">Rs. {{ expense.amount }}</td></tr>
+            {% empty %}<tr><td colspan="3"><div class="empty"><div class="empty-icon">+</div>No expenses recorded yet.</div></td></tr>{% endfor %}
+        </tbody></table>
+    </article>
+</section>
 {% endblock %}
