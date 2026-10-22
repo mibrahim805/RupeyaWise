@@ -1,54 +1,88 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Register - RupeyaWise</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Create account | RupeyaWise</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --ink:#17211b; --muted:#718078; --green:#157f58; --green-dark:#0d6545; --cream:#f7faf7; --line:#dce6df; }
+        * { box-sizing:border-box; }
+        body { min-height:100vh; margin:0; color:var(--ink); background:var(--cream); font-family:"DM Sans",sans-serif; }
+        .auth-shell { display:grid; grid-template-columns:minmax(280px,.9fr) minmax(390px,1.1fr); min-height:100vh; }
+        .brand-panel { position:relative; display:flex; align-items:center; overflow:hidden; padding:clamp(2.5rem,7vw,7rem); color:#fff; background:linear-gradient(145deg,#0d6545 0%,#157f58 60%,#35a36d 100%); }
+        .brand-panel::before,.brand-panel::after { position:absolute; border:1px solid rgba(255,255,255,.17); border-radius:50%; content:""; }
+        .brand-panel::before { width:31rem; height:31rem; right:-15rem; top:-7rem; }
+        .brand-panel::after { width:21rem; height:21rem; left:-12rem; bottom:-6rem; }
+        .brand-content { position:relative; z-index:1; max-width:410px; }
+        .logo { display:inline-flex; align-items:center; gap:.65rem; margin-bottom:4rem; font:700 1.3rem "Space Grotesk",sans-serif; letter-spacing:-.03em; }
+        .logo-mark { display:grid; width:2.2rem; height:2.2rem; place-items:center; border-radius:.7rem; color:var(--green-dark); background:#d9f4e4; font-size:1.25rem; }
+        .brand-content h1 { margin:0 0 1.25rem; font:700 clamp(2.3rem,4vw,4rem)/1.05 "Space Grotesk",sans-serif; letter-spacing:-.06em; }
+        .brand-content p { max-width:330px; margin:0; color:rgba(255,255,255,.78); font-size:1.05rem; line-height:1.7; }
+        .form-panel { display:flex; align-items:center; justify-content:center; padding:2rem; background:#fff; }
+        .form-wrap { width:min(100%,440px); padding:1rem 0; }
+        .eyebrow { margin:0 0 .65rem; color:var(--green); font-size:.75rem; font-weight:700; letter-spacing:.14em; text-transform:uppercase; }
+        .form-wrap h2 { margin:0; font:700 clamp(1.8rem,3vw,2.35rem) "Space Grotesk",sans-serif; letter-spacing:-.05em; }
+        .subtitle { margin:.7rem 0 1.8rem; color:var(--muted); }
+        .alert { margin-bottom:1.25rem; padding:.85rem 1rem; border:1px solid #f0caca; border-radius:.75rem; color:#9a2d2d; background:#fff5f5; font-size:.9rem; }
+        .field { margin-bottom:1rem; }
+        .field label { display:block; margin-bottom:.45rem; font-size:.88rem; font-weight:600; }
+        .field input { width:100%; padding:.8rem 1rem; border:1px solid var(--line); border-radius:.7rem; color:var(--ink); background:#fbfdfb; font:inherit; outline:none; transition:border-color .2s,box-shadow .2s; }
+        .field input:focus { border-color:var(--green); box-shadow:0 0 0 4px rgba(21,127,88,.12); }
+        .field ul { margin:.4rem 0 0; padding-left:1.1rem; color:#b33737; font-size:.78rem; }
+        .help { margin:.4rem 0 0; color:var(--muted); font-size:.76rem; line-height:1.45; }
+        .submit { width:100%; margin-top:.4rem; padding:.9rem 1rem; border:0; border-radius:.7rem; color:#fff; background:var(--green); font:700 .96rem "DM Sans",sans-serif; cursor:pointer; transition:background .2s,transform .2s; }
+        .submit:hover { background:var(--green-dark); transform:translateY(-1px); }
+        .divider { display:flex; align-items:center; gap:.8rem; margin:1.35rem 0 1rem; color:var(--muted); font-size:.8rem; }
+        .divider::before,.divider::after { height:1px; flex:1; background:var(--line); content:""; }
+        .social-row { display:grid; grid-template-columns:1fr 1fr; gap:.7rem; }
+        .social { display:flex; align-items:center; justify-content:center; gap:.5rem; padding:.68rem .5rem; border:1px solid var(--line); border-radius:.65rem; color:var(--ink); background:#fff; font-size:.85rem; font-weight:600; text-decoration:none; }
+        .social:hover { border-color:var(--green); background:#f7fcf9; }
+        .social img { width:17px; height:17px; object-fit:contain; }
+        .signin { margin:1.35rem 0 0; color:var(--muted); text-align:center; font-size:.9rem; }
+        .link { color:var(--green-dark); font-weight:600; text-decoration:none; }
+        .link:hover { text-decoration:underline; }
+        @media (max-width:760px) { .auth-shell{display:block;} .brand-panel{min-height:280px;padding:2rem;} .logo{margin-bottom:2.3rem;} .brand-content h1{font-size:2.25rem;} .form-panel{min-height:calc(100vh - 280px);padding:2.5rem 1.5rem;} }
+    </style>
 </head>
 <body>
-<div class="container mt-5" style="max-width: 400px;">
-    <h2 class="text-center mb-4">Register</h2>
-
-    {% if messages %}
-        {% for message in messages %}
-            <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %}" role="alert">
-                {{ message }}
+    <main class="auth-shell">
+        <section class="brand-panel" aria-label="RupeyaWise introduction">
+            <div class="brand-content">
+                <div class="logo"><span class="logo-mark">₹</span> RupeyaWise</div>
+                <h1>Build better money habits.</h1>
+                <p>Start with a clearer view of your spending and take control of your financial goals.</p>
             </div>
-        {% endfor %}
-    {% endif %}
-
-        <form method="POST">
-                {% csrf_token %}
-                {{ form.as_p }}
-                <button type="submit" class="btn btn-primary w-100">
-                    Create Account
-                </button>
-            </form>
-
-
-
-    <p class="text-center mt-3 text-muted">Or continue with</p>
-
-    <div class="d-flex justify-content-between gap-2">
-        <a href="/accounts/google/login/"
-           class="btn btn-light border d-flex align-items-center justify-content-center flex-grow-1"
-           style="font-weight: 500;">
-            <img src="https://developers.google.com/identity/images/g-logo.png"
-                 alt="Google logo" style="width:20px; margin-right:10px;">
-            Google
-        </a>
-
-        <a href="/accounts/github/login/"
-           class="btn btn-light border d-flex align-items-center justify-content-center flex-grow-1"
-           style="font-weight: 500;">
-            <img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
-                 alt="GitHub logo" style="width:20px; margin-right:10px;">
-            GitHub
-        </a>
-    </div>
-
-    <p class="mt-3 text-center">
-        Already have an account? <a href="{% url 'login' %}">Login here</a>
-    </p>
-</div>
+        </section>
+        <section class="form-panel">
+            <div class="form-wrap">
+                <p class="eyebrow">Get started</p>
+                <h2>Create your account</h2>
+                <p class="subtitle">It only takes a minute to get organized.</p>
+                {% if messages %}{% for message in messages %}<div class="alert" role="alert">{{ message }}</div>{% endfor %}{% endif %}
+                {% if form.non_field_errors %}<div class="alert" role="alert">{{ form.non_field_errors|striptags }}</div>{% endif %}
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    {% for field in form %}
+                        <div class="field">
+                            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.help_text %}<p class="help">{{ field.help_text|safe }}</p>{% endif %}
+                            {% for error in field.errors %}<ul><li>{{ error }}</li></ul>{% endfor %}
+                        </div>
+                    {% endfor %}
+                    <button class="submit" type="submit">Create account</button>
+                </form>
+                <div class="divider">or continue with</div>
+                <div class="social-row">
+                    <a class="social" href="/accounts/google/login/"><img src="https://developers.google.com/identity/images/g-logo.png" alt=""> Google</a>
+                    <a class="social" href="/accounts/github/login/"><img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" alt=""> GitHub</a>
+                </div>
+                <p class="signin">Already have an account? <a class="link" href="{% url 'login' %}">Sign in</a></p>
+            </div>
+        </section>
+    </main>
 </body>
 </html>
