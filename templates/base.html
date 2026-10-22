@@ -8,10 +8,11 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
     <style>
-        :root { --ink:#17211b; --muted:#718078; --green:#157f58; --green-dark:#0d6545; --pale:#e9f6ef; --line:#e1e9e4; --page:#f7faf8; }
+        :root { --ink:#17211b; --muted:#718078; --green:#157f58; --green-dark:#0d6545; --pale:#e9f6ef; --line:#e1e9e4; --page:#f7faf8; --surface:#fff; --surface-soft:#fbfdfb; }
+        [data-theme="dark"] { --ink:#e8f1eb; --muted:#9aac9f; --green:#49c487; --green-dark:#83e0ac; --pale:#173b2b; --line:#2b4437; --page:#101813; --surface:#17231c; --surface-soft:#1b2a22; }
         * { box-sizing:border-box; }
         body { min-height:100vh; margin:0; color:var(--ink); background:var(--page); font-family:"DM Sans",sans-serif; }
-        .site-nav { display:flex; align-items:center; justify-content:space-between; gap:1.5rem; padding:1.05rem clamp(1.25rem,5vw,5rem); border-bottom:1px solid var(--line); background:#fff; }
+        .site-nav { display:flex; align-items:center; justify-content:space-between; gap:1.5rem; padding:1.05rem clamp(1.25rem,5vw,5rem); border-bottom:1px solid var(--line); background:var(--surface); }
         .brand { display:flex; align-items:center; gap:.6rem; color:var(--ink); font:700 1.25rem "Space Grotesk",sans-serif; letter-spacing:-.04em; text-decoration:none; }
         .brand-mark { display:grid; width:2rem; height:2rem; place-items:center; border-radius:.6rem; color:#fff; background:var(--green); font-size:1rem; }
         .nav-links { display:flex; align-items:center; gap:.35rem; }
@@ -19,8 +20,10 @@
         .nav-link:hover,.nav-link.active { color:var(--green-dark); background:var(--pale); }
         .nav-action { margin-left:.35rem; padding:.62rem 1rem; border-radius:.55rem; color:#fff; background:var(--green); font-size:.88rem; font-weight:700; text-decoration:none; }
         .nav-action:hover { background:var(--green-dark); }
-        .logout { margin-left:.35rem; padding:.55rem .8rem; border:1px solid var(--line); border-radius:.55rem; color:var(--muted); background:#fff; font:600 .88rem "DM Sans",sans-serif; cursor:pointer; }
+        .logout,.theme-toggle { margin-left:.35rem; padding:.55rem .8rem; border:1px solid var(--line); border-radius:.55rem; color:var(--muted); background:var(--surface); font:600 .88rem "DM Sans",sans-serif; cursor:pointer; }
         .logout:hover { color:var(--ink); border-color:#c9d7ce; }
+        .theme-toggle { min-width:2.7rem; padding:.55rem .65rem; }
+        .theme-toggle:hover { color:var(--ink); border-color:var(--green); }
         .page-container { width:min(1160px,calc(100% - 2.5rem)); margin:0 auto; padding:clamp(2rem,5vw,4.5rem) 0; }
         @media (max-width:700px) { .site-nav{align-items:flex-start; flex-wrap:wrap;} .nav-links{width:100%; order:3; overflow:auto;} .nav-action,.logout{font-size:.8rem;} .page-container{width:min(100% - 2rem,600px); padding-top:2rem;} }
     </style>
@@ -33,6 +36,7 @@
             <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'expenses:dashboard' %}">Overview</a>
             <a class="nav-link {% if request.resolver_match.url_name == 'expense_list' %}active{% endif %}" href="{% url 'expenses:expense_list' %}">Expenses</a>
             <a class="nav-action" href="{% url 'expenses:add_expense' %}">+ Add expense</a>
+            <button class="theme-toggle" type="button" aria-label="Switch theme" title="Switch theme"><span class="theme-icon">☾</span></button>
             <form method="post" action="{% url 'logout' %}">
                 {% csrf_token %}
                 <button class="logout" type="submit">Log out</button>
@@ -40,5 +44,27 @@
         </div>
     </nav>
     <main class="page-container">{% block content %}{% endblock %}</main>
+    <script>
+        (() => {
+            const root = document.documentElement;
+            const button = document.querySelector('.theme-toggle');
+            const icon = document.querySelector('.theme-icon');
+            const saved = localStorage.getItem('rupeyawise-theme');
+            if (saved === 'dark') root.dataset.theme = 'dark';
+            const update = () => {
+                const dark = root.dataset.theme === 'dark';
+                if (icon) icon.textContent = dark ? '☀' : '☾';
+                if (button) button.setAttribute('aria-label', dark ? 'Switch to light theme' : 'Switch to dark theme');
+            };
+            update();
+            button?.addEventListener('click', () => {
+                const dark = root.dataset.theme === 'dark';
+                if (dark) delete root.dataset.theme;
+                else root.dataset.theme = 'dark';
+                localStorage.setItem('rupeyawise-theme', dark ? 'light' : 'dark');
+                update();
+            });
+        })();
+    </script>
 </body>
 </html>

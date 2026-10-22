@@ -8,7 +8,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
     <style>
-        :root { --ink:#17211b; --muted:#718078; --green:#157f58; --green-dark:#0d6545; --cream:#f7faf7; --line:#dce6df; }
+        :root { --ink:#17211b; --muted:#718078; --green:#157f58; --green-dark:#0d6545; --cream:#f7faf7; --line:#dce6df; --surface:#fff; --field:#fbfdfb; }
+        [data-theme="dark"] { --ink:#e8f1eb; --muted:#9aac9f; --green:#49c487; --green-dark:#83e0ac; --cream:#101813; --line:#2b4437; --surface:#17231c; --field:#1b2a22; }
         * { box-sizing:border-box; }
         body { min-height:100vh; margin:0; color:var(--ink); background:var(--cream); font-family:"DM Sans",sans-serif; }
         .auth-shell { display:grid; grid-template-columns:minmax(280px,.9fr) minmax(390px,1.1fr); min-height:100vh; }
@@ -21,7 +22,7 @@
         .logo-mark { display:grid; width:2.2rem; height:2.2rem; place-items:center; border-radius:.7rem; color:var(--green-dark); background:#d9f4e4; font-size:1.25rem; }
         .brand-content h1 { margin:0 0 1.25rem; font:700 clamp(2.3rem,4vw,4rem)/1.05 "Space Grotesk",sans-serif; letter-spacing:-.06em; }
         .brand-content p { max-width:330px; margin:0; color:rgba(255,255,255,.78); font-size:1.05rem; line-height:1.7; }
-        .form-panel { display:flex; align-items:center; justify-content:center; padding:2rem; background:#fff; }
+        .form-panel { display:flex; align-items:center; justify-content:center; padding:2rem; background:var(--surface); }
         .form-wrap { width:min(100%,440px); padding:1rem 0; }
         .eyebrow { margin:0 0 .65rem; color:var(--green); font-size:.75rem; font-weight:700; letter-spacing:.14em; text-transform:uppercase; }
         .form-wrap h2 { margin:0; font:700 clamp(1.8rem,3vw,2.35rem) "Space Grotesk",sans-serif; letter-spacing:-.05em; }
@@ -29,7 +30,8 @@
         .alert { margin-bottom:1.25rem; padding:.85rem 1rem; border:1px solid #f0caca; border-radius:.75rem; color:#9a2d2d; background:#fff5f5; font-size:.9rem; }
         .field { margin-bottom:1rem; }
         .field label { display:block; margin-bottom:.45rem; font-size:.88rem; font-weight:600; }
-        .field input { width:100%; padding:.8rem 1rem; border:1px solid var(--line); border-radius:.7rem; color:var(--ink); background:#fbfdfb; font:inherit; outline:none; transition:border-color .2s,box-shadow .2s; }
+        .field input { width:100%; padding:.8rem 1rem; border:1px solid var(--line); border-radius:.7rem; color:var(--ink); background:var(--field); font:inherit; outline:none; transition:border-color .2s,box-shadow .2s; }
+        .theme-toggle { position:fixed; top:1.2rem; right:1.2rem; z-index:2; padding:.6rem .75rem; border:1px solid rgba(255,255,255,.3); border-radius:.6rem; color:var(--ink); background:var(--surface); cursor:pointer; }
         .field input:focus { border-color:var(--green); box-shadow:0 0 0 4px rgba(21,127,88,.12); }
         .field ul { margin:.4rem 0 0; padding-left:1.1rem; color:#b33737; font-size:.78rem; }
         .help { margin:.4rem 0 0; color:var(--muted); font-size:.76rem; line-height:1.45; }
@@ -48,6 +50,7 @@
     </style>
 </head>
 <body>
+    <button class="theme-toggle" type="button" aria-label="Switch theme"><span>☾</span></button>
     <main class="auth-shell">
         <section class="brand-panel" aria-label="RupeyaWise introduction">
             <div class="brand-content">
@@ -84,5 +87,12 @@
             </div>
         </section>
     </main>
+    <script>
+        const root = document.documentElement, toggle = document.querySelector('.theme-toggle'), icon = toggle.querySelector('span');
+        if (localStorage.getItem('rupeyawise-theme') === 'dark') root.dataset.theme = 'dark';
+        const updateTheme = () => { const dark = root.dataset.theme === 'dark'; icon.textContent = dark ? '☀' : '☾'; };
+        updateTheme();
+        toggle.addEventListener('click', () => { const dark = root.dataset.theme === 'dark'; if (dark) delete root.dataset.theme; else root.dataset.theme = 'dark'; localStorage.setItem('rupeyawise-theme', dark ? 'light' : 'dark'); updateTheme(); });
+    </script>
 </body>
 </html>

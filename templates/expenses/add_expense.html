@@ -10,7 +10,7 @@
     .page-heading h1 { margin:0; font:700 clamp(2rem,4vw,3rem) "Space Grotesk",sans-serif; letter-spacing:-.06em; }
     .page-heading p { margin:.65rem 0 0; color:var(--muted); }
     .form-layout { display:grid; grid-template-columns:minmax(0,1fr) 280px; gap:1rem; align-items:start; }
-    .expense-card,.tip-card { border:1px solid var(--line); border-radius:1rem; background:#fff; box-shadow:0 8px 25px rgba(27,65,45,.04); }
+    .expense-card,.tip-card { border:1px solid var(--line); border-radius:1rem; background:var(--surface); box-shadow:0 8px 25px rgba(27,65,45,.04); }
     .expense-card { padding:1.6rem; }
     .tip-card { padding:1.45rem; color:#fff; background:linear-gradient(145deg,#0d6545,#157f58); }
     .tip-icon { display:grid; width:2.4rem; height:2.4rem; margin-bottom:1.2rem; place-items:center; border-radius:.7rem; color:var(--green-dark); background:#d9f4e4; font-size:1.2rem; font-weight:700; }
@@ -21,7 +21,7 @@
     .field { margin-bottom:1rem; }
     .field.full { grid-column:1 / -1; }
     .field label { display:block; margin-bottom:.45rem; font-size:.86rem; font-weight:700; }
-    .field input,.field select,.field textarea { width:100%; border:1px solid var(--line); border-radius:.65rem; color:var(--ink); background:#fbfdfb; font:inherit; outline:none; transition:border-color .2s,box-shadow .2s; }
+    .field input,.field select,.field textarea { width:100%; border:1px solid var(--line); border-radius:.65rem; color:var(--ink); background:var(--surface-soft); font:inherit; outline:none; transition:border-color .2s,box-shadow .2s; }
     .field input,.field select { min-height:2.9rem; padding:.75rem .9rem; }
     .field textarea { min-height:7rem; padding:.8rem .9rem; resize:vertical; }
     .field input:focus,.field select:focus,.field textarea:focus { border-color:var(--green); box-shadow:0 0 0 4px rgba(21,127,88,.12); }
@@ -31,7 +31,7 @@
     .primary-button,.secondary-button { display:inline-flex; align-items:center; justify-content:center; min-height:2.8rem; padding:.7rem 1.1rem; border-radius:.6rem; font-size:.88rem; font-weight:700; text-decoration:none; cursor:pointer; }
     .primary-button { border:0; color:#fff; background:var(--green); }
     .primary-button:hover { background:var(--green-dark); }
-    .secondary-button { border:1px solid var(--line); color:var(--muted); background:#fff; }
+    .secondary-button { border:1px solid var(--line); color:var(--muted); background:var(--surface); }
     .secondary-button:hover { color:var(--ink); border-color:#c9d7ce; }
     @media (max-width:760px) { .form-layout{grid-template-columns:1fr;} .tip-card{order:-1;} }
     @media (max-width:520px) { .form-grid{grid-template-columns:1fr;} .field.full{grid-column:auto;} .expense-card{padding:1.2rem;} .form-actions{flex-direction:column-reverse; align-items:stretch;} }
