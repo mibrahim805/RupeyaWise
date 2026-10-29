@@ -54,6 +54,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.expensemanager.android.core.designsystem.FinanceThemeMode
+import com.expensemanager.android.core.auth.AuthProfile
 import com.expensemanager.android.core.auth.AuthUser
 import com.expensemanager.android.core.presentation.FinanceEvent
 import com.expensemanager.android.core.presentation.FinanceViewModel
@@ -140,11 +141,14 @@ fun ExpenseManagerApp(
     viewModel: FinanceViewModel,
     themeMode: FinanceThemeMode,
     currentUser: AuthUser,
+    profiles: List<AuthProfile>,
     isGuest: Boolean,
     amountProtectionEnabled: Boolean,
     onAuthenticateBalance: (() -> Unit) -> Unit,
     onAmountProtectionChange: (Boolean) -> Unit,
     onLogout: () -> Unit,
+    onSwitchProfile: (Long) -> Unit,
+    onAddAccount: () -> Unit,
     onThemeChange: (FinanceThemeMode) -> Unit,
 ) {
     val navController = rememberNavController()
@@ -304,10 +308,13 @@ fun ExpenseManagerApp(
                 SettingsScreen(
                     selectedTheme = themeMode,
                     currentUser = currentUser,
+                    profiles = profiles,
                     isGuest = isGuest,
                     amountProtectionEnabled = amountProtectionEnabled,
                     onBack = { navController.popBackStack() },
                     onLogout = onLogout,
+                    onSwitchProfile = onSwitchProfile,
+                    onAddAccount = onAddAccount,
                     onOpenWhatsNew = { navController.navigate("whats-new") },
                     onThemeSelected = onThemeChange,
                     onAmountProtectionChange = onAmountProtectionChange,

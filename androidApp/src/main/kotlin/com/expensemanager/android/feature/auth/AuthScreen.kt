@@ -53,6 +53,7 @@ private enum class AuthPage { LOGIN, REGISTER, FORGOT_PASSWORD, RESET_PASSWORD }
 fun AuthScreen(
     authRepository: AuthRepository,
     resetLink: PasswordResetLink?,
+    isAddingAccount: Boolean,
 ) {
     val colors = financeColors()
     val coroutineScope = rememberCoroutineScope()
@@ -212,18 +213,30 @@ fun AuthScreen(
                         ) {
                             Text("Already have an account? Log in")
                         }
-                        TextButton(
-                            onClick = authRepository::continueAsGuest,
-                            enabled = !isWorking,
-                            modifier = Modifier.align(Alignment.CenterHorizontally),
-                        ) {
-                            Text("Continue without signing up")
+                        if (!isAddingAccount) {
+                            TextButton(
+                                onClick = authRepository::continueAsGuest,
+                                enabled = !isWorking,
+                                modifier = Modifier.align(Alignment.CenterHorizontally),
+                            ) {
+                                Text("Continue without signing up")
+                            }
                         }
                     }
                     AuthPage.FORGOT_PASSWORD, AuthPage.RESET_PASSWORD -> TextButton(
                         onClick = { page = AuthPage.LOGIN; errorMessage = null; notice = null },
                         modifier = Modifier.align(Alignment.CenterHorizontally),
                     ) { Text("Back to login") }
+                }
+
+                if (isAddingAccount) {
+                    TextButton(
+                        onClick = authRepository::cancelAddAccount,
+                        enabled = !isWorking,
+                        modifier = Modifier.align(Alignment.CenterHorizontally),
+                    ) {
+                        Text("Back to current profile")
+                    }
                 }
             }
         }

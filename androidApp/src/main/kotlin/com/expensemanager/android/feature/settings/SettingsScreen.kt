@@ -31,6 +31,8 @@ import androidx.compose.material.icons.filled.Fingerprint
 import androidx.compose.material.icons.filled.Restore
 import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.PersonAdd
+import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -65,6 +67,7 @@ import androidx.core.content.FileProvider
 import com.expensemanager.android.core.designsystem.FinanceThemeMode
 import com.expensemanager.android.core.designsystem.financeColors
 import com.expensemanager.android.core.designsystem.financeThemeColors
+import com.expensemanager.android.core.auth.AuthProfile
 import com.expensemanager.android.core.auth.AuthUser
 import com.expensemanager.android.core.data.BackupRestoreResult
 import com.expensemanager.android.core.update.CurrentRelease
@@ -80,10 +83,13 @@ import java.time.format.DateTimeFormatter
 fun SettingsScreen(
     selectedTheme: FinanceThemeMode,
     currentUser: AuthUser,
+    profiles: List<AuthProfile>,
     isGuest: Boolean,
     amountProtectionEnabled: Boolean,
     onBack: () -> Unit,
     onLogout: () -> Unit,
+    onSwitchProfile: (Long) -> Unit,
+    onAddAccount: () -> Unit,
     onOpenWhatsNew: () -> Unit,
     onThemeSelected: (FinanceThemeMode) -> Unit,
     onAmountProtectionChange: (Boolean) -> Unit,
@@ -97,6 +103,7 @@ fun SettingsScreen(
     var pendingRestore by remember { mutableStateOf<ByteArray?>(null) }
     var backupStatus by remember { mutableStateOf<String?>(null) }
     var isBackupWorking by remember { mutableStateOf(false) }
+    var showAccountSwitcher by remember { mutableStateOf(false) }
     val restoreLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri == null) return@rememberLauncherForActivityResult
         coroutineScope.launch {
@@ -205,12 +212,20 @@ fun SettingsScreen(
             }
         }
         OutlinedButton(
-            onClick = onLogout,
+            onClick = { showAccountSwitcher = true },
             modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+        ) {
+            Icon(Icons.Default.SwapHoriz, contentDescription = null, modifier = Modifier.size(18.dp))
+            Spacer(Modifier.size(8.dp))
+            Text(if (profiles.size > 1) "Switch account" else "Add or switch account")
+        }
+        OutlinedButton(
+            onClick = onLogout,
+            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
         ) {
             Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = null, modifier = Modifier.size(18.dp))
             Spacer(Modifier.size(8.dp))
-            Text(if (isGuest) "Sign up or log in" else "Log out")
+            Text(if (isGuest) "Exit guest mode" else "Log out of this account")
         }
 
         Text("Data & backup", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 22.dp))
@@ -339,6 +354,82 @@ fun SettingsScreen(
             },
         )
     }
+
+    if (showAccountSwitcher) {
+        AccountSwitcherDialog(
+            profiles = profiles,
+            currentUserId = currentUser.id,
+            onDismiss = { showAccountSwitcher = false },
+            onSelect = { userId ->
+                showAccountSwitcher = false
+                onSwitchProfile(userId)
+            },
+            onAddAccount = {
+                showAccountSwitcher = false
+                onAddAccount()
+            },
+        )
+    }
+}
+
+@Composable
+private fun AccountSwitcherDialog(
+    profiles: List<AuthProfile>,
+    currentUserId: Long,
+    onDismiss: () -> Unit,
+    onSelect: (Long) -> Unit,
+    onAddAccount: () -> Unit,
+) {
+    val colors = financeColors()
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Switch account") },
+        text = {
+            Column(
+                modifier = Modifier.verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                profiles.forEach { profile ->
+                    val isCurrent = profile.user.id == currentUserId
+                    Card(
+                        modifier = Modifier.fillMaxWidth().clickable { onSelect(profile.user.id) },
+                        colors = CardDefaults.cardColors(
+                            containerColor = if (isCurrent) colors.elevatedSurface else colors.surface,
+                        ),
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(14.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        ) {
+                            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                Text(
+                                    if (profile.isGuest) "Guest mode" else profile.user.username,
+                                    fontWeight = FontWeight.SemiBold,
+                                )
+                                Text(
+                                    if (profile.isGuest) "Local data on this device" else profile.user.email,
+                                    color = colors.secondaryText,
+                                    style = MaterialTheme.typography.bodySmall,
+                                )
+                            }
+                            if (isCurrent) {
+                                Icon(Icons.Default.Check, contentDescription = "Current account", tint = colors.primary)
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onAddAccount) {
+                Icon(Icons.Default.PersonAdd, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.size(6.dp))
+                Text("Add account")
+            }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Close") } },
+    )
 }
 
 private enum class BackupPasswordMode { CREATE, RESTORE }

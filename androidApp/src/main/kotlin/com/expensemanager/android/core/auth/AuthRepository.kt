@@ -13,6 +13,12 @@ class AuthRepository(private val sessionStore: EncryptedAuthSessionStore) {
     private val _session = MutableStateFlow(sessionStore.read())
     val session = _session.asStateFlow()
 
+    private val _profiles = MutableStateFlow(sessionStore.readAll().toProfiles())
+    val profiles = _profiles.asStateFlow()
+
+    private val _isAddingAccount = MutableStateFlow(false)
+    val isAddingAccount = _isAddingAccount.asStateFlow()
+
     private val _resetLink = MutableStateFlow<PasswordResetLink?>(null)
     val resetLink = _resetLink.asStateFlow()
 
@@ -26,7 +32,7 @@ class AuthRepository(private val sessionStore: EncryptedAuthSessionStore) {
             }
             .onFailure { error ->
                 if ((error as? AuthApiException)?.statusCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
-                    clearSession()
+                    removeCurrentSession()
                 }
             }
     }
@@ -65,6 +71,22 @@ class AuthRepository(private val sessionStore: EncryptedAuthSessionStore) {
         )
     }
 
+    fun beginAddAccount() {
+        _isAddingAccount.value = true
+        _session.value = null
+    }
+
+    fun cancelAddAccount() {
+        _isAddingAccount.value = false
+        _session.value = sessionStore.read()
+    }
+
+    fun switchAccount(userId: Long) {
+        val selected = sessionStore.activate(userId) ?: return
+        _isAddingAccount.value = false
+        _session.value = selected
+    }
+
     suspend fun requestPasswordReset(email: String): String =
         request("password-reset/", JSONObject().put("email", email.trim())).getString("message")
 
@@ -85,12 +107,13 @@ class AuthRepository(private val sessionStore: EncryptedAuthSessionStore) {
                 request("logout/", body = JSONObject(), token = current.token)
             }
         } finally {
-            clearSession()
+            current?.let { removeSession(it.user.id) }
         }
     }
 
     fun openPasswordReset(link: PasswordResetLink) {
-        clearSession()
+        _isAddingAccount.value = false
+        _session.value = null
         _resetLink.value = link
     }
 
@@ -103,17 +126,24 @@ class AuthRepository(private val sessionStore: EncryptedAuthSessionStore) {
             token = response.getString("token"),
             user = response.getJSONObject("user").toAuthUser(),
         )
+        sessionStore.remove(GUEST_USER_ID)
         updateSession(session)
     }
 
     private fun updateSession(session: AuthSession) {
         sessionStore.save(session)
+        _profiles.value = sessionStore.readAll().toProfiles()
+        _isAddingAccount.value = false
         _session.value = session
     }
 
-    private fun clearSession() {
-        sessionStore.clear()
-        _session.value = null
+    private fun removeCurrentSession() {
+        _session.value?.let { removeSession(it.user.id) }
+    }
+
+    private fun removeSession(userId: Long) {
+        _session.value = sessionStore.remove(userId)
+        _profiles.value = sessionStore.readAll().toProfiles()
     }
 
     private suspend fun request(
@@ -164,6 +194,10 @@ class AuthRepository(private val sessionStore: EncryptedAuthSessionStore) {
         username = getString("username"),
         email = optString("email"),
     )
+
+    private fun List<AuthSession>.toProfiles() = map { session ->
+        AuthProfile(user = session.user, isGuest = session.isGuest)
+    }
 
     private companion object {
         const val GUEST_USER_ID = 0L

@@ -68,6 +68,8 @@ class MainActivity : FragmentActivity() {
         setContent {
             val themeMode by application.themePreferences.theme.collectAsStateWithLifecycle(FinanceThemeMode.MIDNIGHT)
             val session by application.authRepository.session.collectAsStateWithLifecycle()
+            val profiles by application.authRepository.profiles.collectAsStateWithLifecycle()
+            val isAddingAccount by application.authRepository.isAddingAccount.collectAsStateWithLifecycle()
             val resetLink by application.authRepository.resetLink.collectAsStateWithLifecycle()
             FinanceTheme(themeMode) {
                 var showCurrentRelease by rememberSaveable {
@@ -88,7 +90,7 @@ class MainActivity : FragmentActivity() {
                     }
                 }
                 when {
-                    session == null -> AuthScreen(application.authRepository, resetLink)
+                    session == null -> AuthScreen(application.authRepository, resetLink, isAddingAccount)
                     else -> {
                         val currentSession = session!!
                         val authenticatedUser = currentSession.user
@@ -120,6 +122,7 @@ class MainActivity : FragmentActivity() {
                             viewModel = viewModel,
                             themeMode = themeMode,
                             currentUser = authenticatedUser,
+                            profiles = profiles,
                             isGuest = currentSession.isGuest,
                             amountProtectionEnabled = amountProtectionEnabled,
                             onAuthenticateBalance = ::authenticateToRevealBalance,
@@ -133,6 +136,8 @@ class MainActivity : FragmentActivity() {
                                 }
                             },
                             onLogout = { lifecycleScope.launch { runCatching { application.authRepository.logout() } } },
+                            onSwitchProfile = application.authRepository::switchAccount,
+                            onAddAccount = application.authRepository::beginAddAccount,
                             onThemeChange = { selectedTheme ->
                                 lifecycleScope.launch { application.themePreferences.setTheme(selectedTheme) }
                             },

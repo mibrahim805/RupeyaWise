@@ -20,9 +20,9 @@ data class AppUpdateInfo(
 object CurrentRelease {
     val versionName: String = BuildConfig.VERSION_NAME
     val notes = listOf(
-        "Tap any day in the weekly spending graph to open its expense records",
-        "Review the selected day's total spending and individual expenses",
-        "View, edit, or delete transactions directly from the daily activity screen",
+        "Securely save more than one account on the same device",
+        "Switch profiles instantly without logging in again",
+        "Add another account from Settings while keeping each profile's data separate",
     )
 }
 
