@@ -47,7 +47,7 @@ import com.expensemanager.android.core.auth.PasswordResetLink
 import com.expensemanager.android.core.designsystem.financeColors
 import kotlinx.coroutines.launch
 
-private enum class AuthPage { LOGIN, REGISTER, ADD_ACCOUNT, FORGOT_PASSWORD, RESET_PASSWORD }
+private enum class AuthPage { LOGIN, REGISTER, ADD_ACCOUNT, GUEST_SETUP, FORGOT_PASSWORD, RESET_PASSWORD }
 
 @Composable
 fun AuthScreen(
@@ -89,6 +89,7 @@ fun AuthScreen(
         AuthPage.LOGIN -> "Welcome back"
         AuthPage.REGISTER -> "Create your account"
         AuthPage.ADD_ACCOUNT -> "Add a profile"
+        AuthPage.GUEST_SETUP -> "Choose your username"
         AuthPage.FORGOT_PASSWORD -> "Forgot password?"
         AuthPage.RESET_PASSWORD -> "Choose a new password"
     }
@@ -96,6 +97,7 @@ fun AuthScreen(
         AuthPage.LOGIN -> "Log in to continue to RupeyaWise."
         AuthPage.REGISTER -> "Start managing your money with RupeyaWise."
         AuthPage.ADD_ACCOUNT -> "Choose a name for this profile. Email and password are optional."
+        AuthPage.GUEST_SETUP -> "Use a name to personalize your local RupeyaWise profile. No signup is required."
         AuthPage.FORGOT_PASSWORD -> "We’ll email you a secure link to reset it."
         AuthPage.RESET_PASSWORD -> "Choose a strong password you haven’t used before."
     }
@@ -134,6 +136,9 @@ fun AuthScreen(
                 if (page == AuthPage.ADD_ACCOUNT) {
                     AuthTextField(username, { username = it }, "Profile name", KeyboardType.Text)
                 }
+                if (page == AuthPage.GUEST_SETUP) {
+                    AuthTextField(username, { username = it }, "Username", KeyboardType.Text)
+                }
                 if (page == AuthPage.FORGOT_PASSWORD) {
                     AuthTextField(email, { email = it }, "Email", KeyboardType.Email)
                 }
@@ -167,6 +172,10 @@ fun AuthScreen(
                             errorMessage = "Enter a profile name."
                             return@Button
                         }
+                        if (page == AuthPage.GUEST_SETUP && username.isBlank()) {
+                            errorMessage = "Enter a username."
+                            return@Button
+                        }
                         if (page == AuthPage.FORGOT_PASSWORD && email.isBlank()) {
                             errorMessage = "Enter the email address for your account."
                             return@Button
@@ -179,6 +188,7 @@ fun AuthScreen(
                                     AuthPage.LOGIN -> authRepository.login(identifier, password)
                                     AuthPage.REGISTER -> authRepository.register(username, email, password, passwordConfirmation)
                                     AuthPage.ADD_ACCOUNT -> authRepository.createLocalAccount(username)
+                                    AuthPage.GUEST_SETUP -> authRepository.continueAsGuest(username)
                                     AuthPage.FORGOT_PASSWORD -> {
                                         notice = authRepository.requestPasswordReset(email)
                                     }
@@ -211,6 +221,7 @@ fun AuthScreen(
                                 AuthPage.LOGIN -> "Log in"
                                 AuthPage.REGISTER -> "Create account"
                                 AuthPage.ADD_ACCOUNT -> "Continue"
+                                AuthPage.GUEST_SETUP -> "Continue without signup"
                                 AuthPage.FORGOT_PASSWORD -> "Send reset link"
                                 AuthPage.RESET_PASSWORD -> "Reset password"
                             },
@@ -235,7 +246,12 @@ fun AuthScreen(
                             Text("Already have an account? Log in")
                         }
                         TextButton(
-                            onClick = authRepository::continueAsGuest,
+                            onClick = {
+                                username = ""
+                                page = AuthPage.GUEST_SETUP
+                                errorMessage = null
+                                notice = null
+                            },
                             enabled = !isWorking,
                             modifier = Modifier.align(Alignment.CenterHorizontally),
                         ) {
@@ -243,6 +259,11 @@ fun AuthScreen(
                         }
                     }
                     AuthPage.ADD_ACCOUNT -> Unit
+                    AuthPage.GUEST_SETUP -> TextButton(
+                        onClick = { page = AuthPage.REGISTER; errorMessage = null; notice = null },
+                        enabled = !isWorking,
+                        modifier = Modifier.align(Alignment.CenterHorizontally),
+                    ) { Text("Back to signup") }
                     AuthPage.FORGOT_PASSWORD, AuthPage.RESET_PASSWORD -> TextButton(
                         onClick = { page = AuthPage.LOGIN; errorMessage = null; notice = null },
                         modifier = Modifier.align(Alignment.CenterHorizontally),

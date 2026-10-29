@@ -274,6 +274,7 @@ fun ExpenseManagerApp(
             composable("home") {
                 HomeScreen(
                     transactions = transactions,
+                    username = currentUser.username,
                     onAddExpense = { navController.navigate("add") },
                     onViewAll = { navController.navigate("activity") },
                     onOpenDay = { date -> navController.navigate("day/${date.toEpochDay()}") },

@@ -20,9 +20,9 @@ data class AppUpdateInfo(
 object CurrentRelease {
     val versionName: String = BuildConfig.VERSION_NAME
     val notes = listOf(
-        "Create a named local profile without an email or password",
-        "Keep each local profile's transactions, budgets, and settings separate",
-        "Continue using online login and signup whenever you want a connected account",
+        "Choose a username the first time you continue without signing up",
+        "See the active username at the top of the Home page",
+        "Keep local profile data separate while switching between profiles",
     )
 }
 

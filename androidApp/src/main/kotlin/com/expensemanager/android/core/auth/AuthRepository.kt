@@ -57,13 +57,15 @@ class AuthRepository(private val sessionStore: EncryptedAuthSessionStore) {
         saveResponseSession(response)
     }
 
-    fun continueAsGuest() {
+    fun continueAsGuest(username: String) {
+        val trimmedName = username.trim()
+        require(trimmedName.isNotBlank()) { "Enter a username." }
         updateSession(
             AuthSession(
                 token = "",
                 user = AuthUser(
                     id = GUEST_USER_ID,
-                    username = "Guest",
+                    username = trimmedName,
                     email = "",
                 ),
                 isGuest = true,

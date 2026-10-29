@@ -88,6 +88,7 @@ import kotlin.math.roundToInt
 @Composable
 fun HomeScreen(
     transactions: List<FinanceTransaction>,
+    username: String,
     onAddExpense: () -> Unit,
     onViewAll: () -> Unit,
     onOpenDay: (LocalDate) -> Unit,
@@ -113,7 +114,7 @@ fun HomeScreen(
         contentPadding = PaddingValues(start = 16.dp, top = 2.dp, end = 16.dp, bottom = 92.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        item { DashboardHeader(colors, onOpenSettings) }
+        item { DashboardHeader(username, colors, onOpenSettings) }
         item {
             BalanceCard(
                 balance = balance,
@@ -185,14 +186,14 @@ fun HomeScreen(
 }
 
 @Composable
-private fun DashboardHeader(colors: FinanceThemeColors, onOpenSettings: () -> Unit) {
+private fun DashboardHeader(username: String, colors: FinanceThemeColors, onOpenSettings: () -> Unit) {
     Row(
         modifier = Modifier.fillMaxWidth().height(54.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
         Text(
-            "RupeyaWise",
+            username,
             color = colors.primary,
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
