@@ -10,11 +10,13 @@ data class AuthSession(
     val token: String,
     val user: AuthUser,
     val isGuest: Boolean = false,
+    val isLocal: Boolean = false,
 )
 
 data class AuthProfile(
     val user: AuthUser,
     val isGuest: Boolean,
+    val isLocal: Boolean,
 )
 
 data class PasswordResetLink(val uid: String, val token: String)

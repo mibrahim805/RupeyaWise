@@ -47,7 +47,7 @@ import com.expensemanager.android.core.auth.PasswordResetLink
 import com.expensemanager.android.core.designsystem.financeColors
 import kotlinx.coroutines.launch
 
-private enum class AuthPage { LOGIN, REGISTER, FORGOT_PASSWORD, RESET_PASSWORD }
+private enum class AuthPage { LOGIN, REGISTER, ADD_ACCOUNT, FORGOT_PASSWORD, RESET_PASSWORD }
 
 @Composable
 fun AuthScreen(
@@ -75,15 +75,27 @@ fun AuthScreen(
         }
     }
 
+    LaunchedEffect(isAddingAccount) {
+        if (isAddingAccount) {
+            page = AuthPage.ADD_ACCOUNT
+            errorMessage = null
+            notice = null
+        } else if (page == AuthPage.ADD_ACCOUNT) {
+            page = AuthPage.LOGIN
+        }
+    }
+
     val title = when (page) {
         AuthPage.LOGIN -> "Welcome back"
         AuthPage.REGISTER -> "Create your account"
+        AuthPage.ADD_ACCOUNT -> "Add a profile"
         AuthPage.FORGOT_PASSWORD -> "Forgot password?"
         AuthPage.RESET_PASSWORD -> "Choose a new password"
     }
     val subtitle = when (page) {
         AuthPage.LOGIN -> "Log in to continue to RupeyaWise."
         AuthPage.REGISTER -> "Start managing your money with RupeyaWise."
+        AuthPage.ADD_ACCOUNT -> "Choose a name for this profile. Email and password are optional."
         AuthPage.FORGOT_PASSWORD -> "We’ll email you a secure link to reset it."
         AuthPage.RESET_PASSWORD -> "Choose a strong password you haven’t used before."
     }
@@ -119,6 +131,9 @@ fun AuthScreen(
                     PasswordField(password, { password = it }, "Password")
                     PasswordField(passwordConfirmation, { passwordConfirmation = it }, "Confirm password")
                 }
+                if (page == AuthPage.ADD_ACCOUNT) {
+                    AuthTextField(username, { username = it }, "Profile name", KeyboardType.Text)
+                }
                 if (page == AuthPage.FORGOT_PASSWORD) {
                     AuthTextField(email, { email = it }, "Email", KeyboardType.Email)
                 }
@@ -148,6 +163,10 @@ fun AuthScreen(
                             errorMessage = "Enter a username and email address."
                             return@Button
                         }
+                        if (page == AuthPage.ADD_ACCOUNT && username.isBlank()) {
+                            errorMessage = "Enter a profile name."
+                            return@Button
+                        }
                         if (page == AuthPage.FORGOT_PASSWORD && email.isBlank()) {
                             errorMessage = "Enter the email address for your account."
                             return@Button
@@ -159,6 +178,7 @@ fun AuthScreen(
                                 when (action) {
                                     AuthPage.LOGIN -> authRepository.login(identifier, password)
                                     AuthPage.REGISTER -> authRepository.register(username, email, password, passwordConfirmation)
+                                    AuthPage.ADD_ACCOUNT -> authRepository.createLocalAccount(username)
                                     AuthPage.FORGOT_PASSWORD -> {
                                         notice = authRepository.requestPasswordReset(email)
                                     }
@@ -190,6 +210,7 @@ fun AuthScreen(
                             when (page) {
                                 AuthPage.LOGIN -> "Log in"
                                 AuthPage.REGISTER -> "Create account"
+                                AuthPage.ADD_ACCOUNT -> "Continue"
                                 AuthPage.FORGOT_PASSWORD -> "Send reset link"
                                 AuthPage.RESET_PASSWORD -> "Reset password"
                             },
@@ -213,16 +234,15 @@ fun AuthScreen(
                         ) {
                             Text("Already have an account? Log in")
                         }
-                        if (!isAddingAccount) {
-                            TextButton(
-                                onClick = authRepository::continueAsGuest,
-                                enabled = !isWorking,
-                                modifier = Modifier.align(Alignment.CenterHorizontally),
-                            ) {
-                                Text("Continue without signing up")
-                            }
+                        TextButton(
+                            onClick = authRepository::continueAsGuest,
+                            enabled = !isWorking,
+                            modifier = Modifier.align(Alignment.CenterHorizontally),
+                        ) {
+                            Text("Continue without signing up")
                         }
                     }
+                    AuthPage.ADD_ACCOUNT -> Unit
                     AuthPage.FORGOT_PASSWORD, AuthPage.RESET_PASSWORD -> TextButton(
                         onClick = { page = AuthPage.LOGIN; errorMessage = null; notice = null },
                         modifier = Modifier.align(Alignment.CenterHorizontally),

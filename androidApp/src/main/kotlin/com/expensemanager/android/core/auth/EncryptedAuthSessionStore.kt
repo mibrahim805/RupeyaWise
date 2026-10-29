@@ -109,6 +109,7 @@ class EncryptedAuthSessionStore(context: Context) {
             email = optString("email"),
         ),
         isGuest = optBoolean("is_guest", false),
+        isLocal = optBoolean("is_local", false),
     )
 
     private fun AuthSession.toJson() = JSONObject()
@@ -117,6 +118,7 @@ class EncryptedAuthSessionStore(context: Context) {
         .put("username", user.username)
         .put("email", user.email)
         .put("is_guest", isGuest)
+        .put("is_local", isLocal)
 
     private fun key(): SecretKey {
         val keyStore = KeyStore.getInstance(KEYSTORE_PROVIDER).apply { load(null) }

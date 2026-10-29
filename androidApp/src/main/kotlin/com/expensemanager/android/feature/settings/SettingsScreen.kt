@@ -104,6 +104,7 @@ fun SettingsScreen(
     var backupStatus by remember { mutableStateOf<String?>(null) }
     var isBackupWorking by remember { mutableStateOf(false) }
     var showAccountSwitcher by remember { mutableStateOf(false) }
+    val isLocal = profiles.firstOrNull { it.user.id == currentUser.id }?.isLocal == true
     val restoreLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri == null) return@rememberLauncherForActivityResult
         coroutineScope.launch {
@@ -205,7 +206,11 @@ fun SettingsScreen(
             Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(if (isGuest) "Guest mode" else currentUser.username, fontWeight = FontWeight.SemiBold)
                 Text(
-                    if (isGuest) "Your data is stored locally on this device." else currentUser.email,
+                    when {
+                        isGuest -> "Your data is stored locally on this device."
+                        isLocal -> "Local profile stored on this device."
+                        else -> currentUser.email
+                    },
                     color = colors.secondaryText,
                     style = MaterialTheme.typography.bodyMedium,
                 )
@@ -225,7 +230,13 @@ fun SettingsScreen(
         ) {
             Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = null, modifier = Modifier.size(18.dp))
             Spacer(Modifier.size(8.dp))
-            Text(if (isGuest) "Exit guest mode" else "Log out of this account")
+            Text(
+                when {
+                    isGuest -> "Exit guest mode"
+                    isLocal -> "Exit local profile"
+                    else -> "Log out of this account"
+                },
+            )
         }
 
         Text("Data & backup", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 22.dp))
@@ -404,11 +415,19 @@ private fun AccountSwitcherDialog(
                         ) {
                             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                                 Text(
-                                    if (profile.isGuest) "Guest mode" else profile.user.username,
+                                    when {
+                                        profile.isGuest -> "Guest mode"
+                                        profile.isLocal -> profile.user.username
+                                        else -> profile.user.username
+                                    },
                                     fontWeight = FontWeight.SemiBold,
                                 )
                                 Text(
-                                    if (profile.isGuest) "Local data on this device" else profile.user.email,
+                                    when {
+                                        profile.isGuest -> "Local data on this device"
+                                        profile.isLocal -> "Local profile on this device"
+                                        else -> profile.user.email
+                                    },
                                     color = colors.secondaryText,
                                     style = MaterialTheme.typography.bodySmall,
                                 )

@@ -24,7 +24,7 @@ class AuthRepository(private val sessionStore: EncryptedAuthSessionStore) {
 
     suspend fun restoreSession() {
         val current = _session.value ?: return
-        if (current.isGuest) return
+        if (current.isGuest || current.isLocal) return
         runCatching { request("me/", token = current.token) }
             .onSuccess { response ->
                 val user = response.getJSONObject("user").toAuthUser()
@@ -71,6 +71,23 @@ class AuthRepository(private val sessionStore: EncryptedAuthSessionStore) {
         )
     }
 
+    fun createLocalAccount(name: String, email: String = "") {
+        val trimmedName = name.trim()
+        require(trimmedName.isNotBlank()) { "Enter a profile name." }
+        sessionStore.remove(GUEST_USER_ID)
+        updateSession(
+            AuthSession(
+                token = "",
+                user = AuthUser(
+                    id = nextLocalUserId(),
+                    username = trimmedName,
+                    email = email.trim(),
+                ),
+                isLocal = true,
+            ),
+        )
+    }
+
     fun beginAddAccount() {
         _isAddingAccount.value = true
         _session.value = null
@@ -103,7 +120,7 @@ class AuthRepository(private val sessionStore: EncryptedAuthSessionStore) {
     suspend fun logout() {
         val current = _session.value
         try {
-            if (current != null && !current.isGuest) {
+            if (current != null && !current.isGuest && !current.isLocal) {
                 request("logout/", body = JSONObject(), token = current.token)
             }
         } finally {
@@ -128,6 +145,13 @@ class AuthRepository(private val sessionStore: EncryptedAuthSessionStore) {
         )
         sessionStore.remove(GUEST_USER_ID)
         updateSession(session)
+    }
+
+    private fun nextLocalUserId(): Long {
+        var candidate = -System.currentTimeMillis()
+        val existingIds = sessionStore.readAll().mapTo(mutableSetOf()) { it.user.id }
+        while (candidate == GUEST_USER_ID || candidate in existingIds) candidate--
+        return candidate
     }
 
     private fun updateSession(session: AuthSession) {
@@ -196,7 +220,7 @@ class AuthRepository(private val sessionStore: EncryptedAuthSessionStore) {
     )
 
     private fun List<AuthSession>.toProfiles() = map { session ->
-        AuthProfile(user = session.user, isGuest = session.isGuest)
+        AuthProfile(user = session.user, isGuest = session.isGuest, isLocal = session.isLocal)
     }
 
     private companion object {

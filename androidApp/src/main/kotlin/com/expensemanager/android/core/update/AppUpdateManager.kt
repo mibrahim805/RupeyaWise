@@ -20,9 +20,9 @@ data class AppUpdateInfo(
 object CurrentRelease {
     val versionName: String = BuildConfig.VERSION_NAME
     val notes = listOf(
-        "Securely save more than one account on the same device",
-        "Switch profiles instantly without logging in again",
-        "Add another account from Settings while keeping each profile's data separate",
+        "Create a named local profile without an email or password",
+        "Keep each local profile's transactions, budgets, and settings separate",
+        "Continue using online login and signup whenever you want a connected account",
     )
 }
 
