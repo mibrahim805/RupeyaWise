@@ -17,8 +17,8 @@ android {
         applicationId = "com.rupeyawise.android"
         minSdk = 26
         targetSdk = 37
-        versionCode = 9
-        versionName = "2.0.4"
+        versionCode = 10
+        versionName = "2.0.5"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true

@@ -90,6 +90,7 @@ fun HomeScreen(
     transactions: List<FinanceTransaction>,
     onAddExpense: () -> Unit,
     onViewAll: () -> Unit,
+    onOpenDay: (LocalDate) -> Unit,
     onOpenInsights: () -> Unit,
     onOpenSettings: () -> Unit,
     amountsVisible: Boolean,
@@ -150,6 +151,7 @@ fun HomeScreen(
                 today = today,
                 colors = colors,
                 amountsVisible = amountsVisible,
+                onOpenDay = onOpenDay,
                 onOpenInsights = onOpenInsights,
             )
         }
@@ -363,6 +365,7 @@ private fun MonthlyWeeklySpending(
     today: LocalDate,
     colors: FinanceThemeColors,
     amountsVisible: Boolean,
+    onOpenDay: (LocalDate) -> Unit,
     onOpenInsights: () -> Unit,
 ) {
     val pagerState = rememberPagerState(
@@ -383,6 +386,7 @@ private fun MonthlyWeeklySpending(
                 spending = weekSpending(transactions, weekAnchor),
                 colors = colors,
                 amountsVisible = amountsVisible,
+                onOpenDay = onOpenDay,
                 onOpenInsights = onOpenInsights,
             )
         }
@@ -417,6 +421,7 @@ private fun WeeklySpendingCard(
     spending: List<DailySpending>,
     colors: FinanceThemeColors,
     amountsVisible: Boolean,
+    onOpenDay: (LocalDate) -> Unit,
     onOpenInsights: () -> Unit,
 ) {
     val total = spending.sumOf { it.amountMinor }
@@ -464,14 +469,14 @@ private fun WeeklySpendingCard(
                             modifier = Modifier
                                 .weight(1f)
                                 .fillMaxSize()
-                                .clickable { }
+                                .clickable { onOpenDay(day.date) }
                                 .semantics {
                                     val amountDescription = if (amountsVisible) {
                                         formatMoney(day.amountMinor)
                                     } else {
                                         "Amount hidden"
                                     }
-                                    contentDescription = "${day.date.dayOfWeek.getDisplayName(TextStyle.FULL, Locale.getDefault())}: $amountDescription"
+                                    contentDescription = "${day.date.dayOfWeek.getDisplayName(TextStyle.FULL, Locale.getDefault())}: $amountDescription. Open expense records"
                                 },
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.Bottom,
@@ -493,7 +498,11 @@ private fun WeeklySpendingCard(
                     spending.forEach { day ->
                         Text(
                             text = day.date.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault()).take(3),
-                            modifier = Modifier.weight(1f),
+                            modifier = Modifier
+                                .weight(1f)
+                                .clip(RoundedCornerShape(6.dp))
+                                .clickable { onOpenDay(day.date) }
+                                .padding(vertical = 4.dp),
                             color = colors.secondaryText,
                             style = MaterialTheme.typography.labelMedium,
                             textAlign = androidx.compose.ui.text.style.TextAlign.Center,

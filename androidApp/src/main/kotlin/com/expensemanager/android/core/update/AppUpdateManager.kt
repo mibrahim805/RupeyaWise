@@ -20,9 +20,9 @@ data class AppUpdateInfo(
 object CurrentRelease {
     val versionName: String = BuildConfig.VERSION_NAME
     val notes = listOf(
-        "Start using RupeyaWise without creating an account",
-        "Keep guest transactions and budgets stored locally on your device",
-        "Sign up or log in later and carry your local data into your account",
+        "Tap any day in the weekly spending graph to open its expense records",
+        "Review the selected day's total spending and individual expenses",
+        "View, edit, or delete transactions directly from the daily activity screen",
     )
 }
 

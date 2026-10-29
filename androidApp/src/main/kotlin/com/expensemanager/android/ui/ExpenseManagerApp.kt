@@ -62,6 +62,7 @@ import com.expensemanager.android.feature.home.HomeScreen
 import com.expensemanager.android.feature.insights.InsightsScreen
 import com.expensemanager.android.feature.activity.ActivityScreen
 import com.expensemanager.android.feature.activity.CategoryActivityScreen
+import com.expensemanager.android.feature.activity.DayActivityScreen
 import com.expensemanager.android.feature.budgets.BudgetsScreen
 import com.expensemanager.android.feature.transactions.AddTransactionScreen
 import com.expensemanager.android.feature.settings.SettingsScreen
@@ -156,7 +157,8 @@ fun ExpenseManagerApp(
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
     val isFullscreen = currentRoute == "add" || currentRoute == "settings" || currentRoute == "whats-new" ||
-        currentRoute?.startsWith("edit/") == true || currentRoute?.startsWith("category/") == true
+        currentRoute?.startsWith("edit/") == true || currentRoute?.startsWith("category/") == true ||
+        currentRoute?.startsWith("day/") == true
     val colors = MaterialTheme.colorScheme
     val toggleAmountsVisibility = {
         if (amountsVisible) {
@@ -270,6 +272,7 @@ fun ExpenseManagerApp(
                     transactions = transactions,
                     onAddExpense = { navController.navigate("add") },
                     onViewAll = { navController.navigate("activity") },
+                    onOpenDay = { date -> navController.navigate("day/${date.toEpochDay()}") },
                     onOpenInsights = { navController.navigate("insights") },
                     onOpenSettings = { navController.navigate("settings") },
                     amountsVisible = amountsVisible,
@@ -354,6 +357,22 @@ fun ExpenseManagerApp(
                     onEditTransaction = { transaction -> navController.navigate("edit/${transaction.id}") },
                     onDeleteTransaction = { transaction -> viewModel.deleteTransaction(transaction.id) },
                 )
+            }
+            composable("day/{epochDay}") { entry ->
+                val date = entry.arguments?.getString("epochDay")?.toLongOrNull()?.let(java.time.LocalDate::ofEpochDay)
+                if (date != null) {
+                    DayActivityScreen(
+                        date = date,
+                        transactions = transactions,
+                        amountsVisible = amountsVisible,
+                        onToggleAmountsVisibility = toggleAmountsVisibility,
+                        onBack = { navController.popBackStack() },
+                        onEditTransaction = { transaction -> navController.navigate("edit/${transaction.id}") },
+                        onDeleteTransaction = { transaction -> viewModel.deleteTransaction(transaction.id) },
+                    )
+                } else {
+                    PlaceholderScreen("Day unavailable", "This date could not be opened.")
+                }
             }
         }
     }

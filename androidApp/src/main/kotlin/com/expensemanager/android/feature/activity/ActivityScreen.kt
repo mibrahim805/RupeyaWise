@@ -28,6 +28,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Close
@@ -119,6 +120,126 @@ private sealed interface ActivityItem {
 
     data class TransactionRow(val transaction: FinanceTransaction) : ActivityItem {
         override val key: String = "transaction-${transaction.id}"
+    }
+}
+
+@Composable
+fun DayActivityScreen(
+    date: LocalDate,
+    transactions: List<FinanceTransaction>,
+    amountsVisible: Boolean,
+    onToggleAmountsVisibility: () -> Unit,
+    onBack: () -> Unit,
+    onEditTransaction: (FinanceTransaction) -> Unit,
+    onDeleteTransaction: (FinanceTransaction) -> Unit,
+) {
+    val colors = financeColors()
+    val dayExpenses = remember(transactions, date) {
+        transactions
+            .filter { it.type == TransactionType.EXPENSE && it.localDate() == date }
+            .sortedByDescending { it.timestampMillis }
+    }
+    val totalSpent = dayExpenses.sumOf { it.amountMinor }
+    var selectedTransaction by remember { mutableStateOf<FinanceTransaction?>(null) }
+
+    LazyColumn(
+        modifier = Modifier.fillMaxSize().background(colors.appBackground),
+        contentPadding = PaddingValues(start = 16.dp, top = 8.dp, end = 16.dp, bottom = 28.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        item(key = "day-header") {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                IconButton(onClick = onBack) {
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back to home")
+                }
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        date.format(DateTimeFormatter.ofPattern("EEEE, d MMMM", Locale.getDefault())),
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                    Text(
+                        "Expense records for this day",
+                        color = colors.secondaryText,
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                }
+                IconButton(
+                    onClick = onToggleAmountsVisibility,
+                    modifier = Modifier.semantics {
+                        contentDescription = if (amountsVisible) "Hide amounts" else "Show amounts"
+                    },
+                ) {
+                    Icon(
+                        if (amountsVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                        contentDescription = null,
+                    )
+                }
+            }
+        }
+        item(key = "day-summary") {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(18.dp),
+                colors = CardDefaults.cardColors(containerColor = colors.surface),
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxWidth().padding(18.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    Text("Total spent", color = colors.secondaryText, style = MaterialTheme.typography.bodyMedium)
+                    Text(
+                        if (amountsVisible) formatMoney(totalSpent) else maskedMoney(),
+                        color = colors.expense,
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    Text(
+                        "${dayExpenses.size} expense${if (dayExpenses.size == 1) "" else "s"}",
+                        color = colors.secondaryText,
+                        style = MaterialTheme.typography.labelMedium,
+                    )
+                }
+            }
+        }
+
+        if (dayExpenses.isEmpty()) {
+            item(key = "empty-day") {
+                ActivityEmptyState(
+                    "No expenses on this day",
+                    "Expenses added for this date will appear here.",
+                    colors,
+                )
+            }
+        } else {
+            items(dayExpenses, key = { it.id }) { transaction ->
+                ActivityTransactionRow(
+                    transaction = transaction,
+                    colors = colors,
+                    amountsVisible = amountsVisible,
+                    onClick = { selectedTransaction = transaction },
+                )
+            }
+        }
+    }
+
+    selectedTransaction?.let { transaction ->
+        TransactionDetailsSheet(
+            transaction = transaction,
+            amountsVisible = amountsVisible,
+            onDismiss = { selectedTransaction = null },
+            onEdit = {
+                selectedTransaction = null
+                onEditTransaction(transaction)
+            },
+            onDelete = {
+                selectedTransaction = null
+                onDeleteTransaction(transaction)
+            },
+        )
     }
 }
 
