@@ -41,7 +41,7 @@ class EncryptedAuthSessionStore(context: Context) {
             return state.sessions.firstOrNull { it.user.id == state.activeUserId }
         }
         val remaining = state.sessions.filterNot { it.user.id == userId }
-        val next = remaining.firstOrNull()
+        val next = remaining.firstOrNull { it.user.id == state.activeUserId } ?: remaining.firstOrNull()
         if (remaining.isEmpty()) {
             clear()
         } else {

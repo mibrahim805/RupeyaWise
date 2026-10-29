@@ -138,6 +138,28 @@ class MainActivity : FragmentActivity() {
                             onLogout = { lifecycleScope.launch { runCatching { application.authRepository.logout() } } },
                             onSwitchProfile = application.authRepository::switchAccount,
                             onAddAccount = application.authRepository::beginAddAccount,
+                            onDeleteProfile = { profile ->
+                                authenticateToDeleteProfile(profile.user.username) {
+                                    lifecycleScope.launch {
+                                        val profileOwnerId = if (profile.isGuest) {
+                                            FinanceDatabase.LOCAL_OWNER_ID
+                                        } else {
+                                            profile.user.id.toString()
+                                        }
+                                        runCatching {
+                                            application.financeRepository.deleteOwnerData(profileOwnerId)
+                                            application.privacyPreferences.removeUser(profile.user.id)
+                                            application.authRepository.deleteProfile(profile.user.id)
+                                        }.onFailure {
+                                            Toast.makeText(
+                                                this@MainActivity,
+                                                "Could not delete this profile. Please try again.",
+                                                Toast.LENGTH_LONG,
+                                            ).show()
+                                        }
+                                    }
+                                }
+                            },
                             onThemeChange = { selectedTheme ->
                                 lifecycleScope.launch { application.themePreferences.setTheme(selectedTheme) }
                             },
@@ -199,6 +221,14 @@ class MainActivity : FragmentActivity() {
     private fun authenticateToChangeAmountProtection(enabled: Boolean, onAuthenticated: () -> Unit) {
         authenticateOnDevice(
             title = if (enabled) "Turn on amount protection" else "Turn off amount protection",
+            subtitle = "Confirm with your fingerprint or phone screen lock",
+            onAuthenticated = onAuthenticated,
+        )
+    }
+
+    private fun authenticateToDeleteProfile(profileName: String, onAuthenticated: () -> Unit) {
+        authenticateOnDevice(
+            title = "Delete $profileName?",
             subtitle = "Confirm with your fingerprint or phone screen lock",
             onAuthenticated = onAuthenticated,
         )

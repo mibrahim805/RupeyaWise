@@ -27,6 +27,7 @@ import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CloudUpload
 import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.Fingerprint
 import androidx.compose.material.icons.filled.Restore
 import androidx.compose.material.icons.filled.LightMode
@@ -90,6 +91,7 @@ fun SettingsScreen(
     onLogout: () -> Unit,
     onSwitchProfile: (Long) -> Unit,
     onAddAccount: () -> Unit,
+    onDeleteProfile: (AuthProfile) -> Unit,
     onOpenWhatsNew: () -> Unit,
     onThemeSelected: (FinanceThemeMode) -> Unit,
     onAmountProtectionChange: (Boolean) -> Unit,
@@ -104,6 +106,7 @@ fun SettingsScreen(
     var backupStatus by remember { mutableStateOf<String?>(null) }
     var isBackupWorking by remember { mutableStateOf(false) }
     var showAccountSwitcher by remember { mutableStateOf(false) }
+    var pendingDeleteProfile by remember { mutableStateOf<AuthProfile?>(null) }
     val isLocal = profiles.firstOrNull { it.user.id == currentUser.id }?.isLocal == true
     val restoreLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri == null) return@rememberLauncherForActivityResult
@@ -379,6 +382,41 @@ fun SettingsScreen(
                 showAccountSwitcher = false
                 onAddAccount()
             },
+            onDelete = { profile ->
+                showAccountSwitcher = false
+                pendingDeleteProfile = profile
+            },
+        )
+    }
+
+    pendingDeleteProfile?.let { profile ->
+        AlertDialog(
+            onDismissRequest = { pendingDeleteProfile = null },
+            title = { Text("Delete profile?") },
+            text = {
+                Text(
+                    buildString {
+                        append("Remove ${profile.user.username} from this device and permanently delete its local transactions, budgets, and settings?")
+                        if (!profile.isGuest && !profile.isLocal) {
+                            append(" The online account itself will not be deleted.")
+                        }
+                        append(" You’ll confirm with your fingerprint or phone screen lock.")
+                    },
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        pendingDeleteProfile = null
+                        onDeleteProfile(profile)
+                    },
+                ) {
+                    Text("Authenticate and delete", color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { pendingDeleteProfile = null }) { Text("Cancel") }
+            },
         )
     }
 }
@@ -390,6 +428,7 @@ private fun AccountSwitcherDialog(
     onDismiss: () -> Unit,
     onSelect: (Long) -> Unit,
     onAddAccount: () -> Unit,
+    onDelete: (AuthProfile) -> Unit,
 ) {
     val colors = financeColors()
     AlertDialog(
@@ -416,7 +455,7 @@ private fun AccountSwitcherDialog(
                             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                                 Text(
                                     when {
-                                        profile.isGuest -> "Guest mode"
+                                        profile.isGuest -> profile.user.username
                                         profile.isLocal -> profile.user.username
                                         else -> profile.user.username
                                     },
@@ -434,6 +473,13 @@ private fun AccountSwitcherDialog(
                             }
                             if (isCurrent) {
                                 Icon(Icons.Default.Check, contentDescription = "Current account", tint = colors.primary)
+                            }
+                            IconButton(onClick = { onDelete(profile) }) {
+                                Icon(
+                                    Icons.Default.DeleteOutline,
+                                    contentDescription = "Delete ${profile.user.username} profile",
+                                    tint = MaterialTheme.colorScheme.error,
+                                )
                             }
                         }
                     }

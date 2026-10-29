@@ -67,6 +67,12 @@ class FinanceRepository(
         budgetDao.claimLocalBudgets(userId, com.expensemanager.android.core.data.local.FinanceDatabase.LOCAL_OWNER_ID)
     }
 
+    suspend fun deleteOwnerData(userId: String) {
+        require(userId.isNotBlank())
+        transactionDao.deleteByOwner(userId)
+        budgetDao.deleteByOwner(userId)
+    }
+
     suspend fun createEncryptedBackup(password: String): ByteArray {
         val currentOwner = ownerId.value
         val backup = FinanceBackupData(

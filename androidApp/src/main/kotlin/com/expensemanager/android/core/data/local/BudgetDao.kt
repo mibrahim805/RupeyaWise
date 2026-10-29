@@ -23,6 +23,9 @@ interface BudgetDao {
     @Query("DELETE FROM budgets WHERE categoryKey = :categoryKey AND ownerId = :ownerId")
     suspend fun deleteByCategory(categoryKey: String, ownerId: String): Int
 
+    @Query("DELETE FROM budgets WHERE ownerId = :ownerId")
+    suspend fun deleteByOwner(ownerId: String): Int
+
     @Query("UPDATE budgets SET ownerId = :ownerId WHERE ownerId = :localOwnerId AND NOT EXISTS (SELECT 1 FROM budgets WHERE ownerId = :ownerId)")
     suspend fun claimLocalBudgets(ownerId: String, localOwnerId: String): Int
 }

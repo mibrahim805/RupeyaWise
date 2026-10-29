@@ -15,6 +15,10 @@ class PrivacyPreferences(context: Context) {
         preferences.edit().putBoolean(amountProtectionKey(userId), enabled).apply()
     }
 
+    fun removeUser(userId: Long) {
+        preferences.edit().remove(amountProtectionKey(userId)).apply()
+    }
+
     private fun amountProtectionKey(userId: Long) = "amount_protection_enabled_$userId"
 
     private companion object {

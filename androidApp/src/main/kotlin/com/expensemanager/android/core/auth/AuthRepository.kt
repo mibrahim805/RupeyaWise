@@ -106,6 +106,10 @@ class AuthRepository(private val sessionStore: EncryptedAuthSessionStore) {
         _session.value = selected
     }
 
+    fun deleteProfile(userId: Long) {
+        removeSession(userId)
+    }
+
     suspend fun requestPasswordReset(email: String): String =
         request("password-reset/", JSONObject().put("email", email.trim())).getString("message")
 

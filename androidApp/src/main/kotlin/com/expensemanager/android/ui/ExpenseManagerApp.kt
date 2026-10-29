@@ -149,6 +149,7 @@ fun ExpenseManagerApp(
     onLogout: () -> Unit,
     onSwitchProfile: (Long) -> Unit,
     onAddAccount: () -> Unit,
+    onDeleteProfile: (AuthProfile) -> Unit,
     onThemeChange: (FinanceThemeMode) -> Unit,
 ) {
     val navController = rememberNavController()
@@ -316,6 +317,7 @@ fun ExpenseManagerApp(
                     onLogout = onLogout,
                     onSwitchProfile = onSwitchProfile,
                     onAddAccount = onAddAccount,
+                    onDeleteProfile = onDeleteProfile,
                     onOpenWhatsNew = { navController.navigate("whats-new") },
                     onThemeSelected = onThemeChange,
                     onAmountProtectionChange = onAmountProtectionChange,

@@ -27,6 +27,9 @@ interface TransactionDao {
     @Query("DELETE FROM transactions WHERE id = :transactionId AND ownerId = :ownerId")
     suspend fun deleteById(transactionId: Long, ownerId: String): Int
 
+    @Query("DELETE FROM transactions WHERE ownerId = :ownerId")
+    suspend fun deleteByOwner(ownerId: String): Int
+
     @Query("UPDATE transactions SET ownerId = :ownerId WHERE ownerId = :localOwnerId AND NOT EXISTS (SELECT 1 FROM transactions WHERE ownerId = :ownerId)")
     suspend fun claimLocalTransactions(ownerId: String, localOwnerId: String): Int
 }

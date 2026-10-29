@@ -20,9 +20,9 @@ data class AppUpdateInfo(
 object CurrentRelease {
     val versionName: String = BuildConfig.VERSION_NAME
     val notes = listOf(
-        "Choose a username the first time you continue without signing up",
-        "See the active username at the top of the Home page",
-        "Keep local profile data separate while switching between profiles",
+        "Delete saved profiles from the account switcher",
+        "Require fingerprint, PIN, pattern, or password before profile deletion",
+        "Remove a deleted profile's local transactions, budgets, and privacy settings",
     )
 }
 
