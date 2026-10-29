@@ -205,8 +205,20 @@ fun AuthScreen(
                             Text("New to RupeyaWise? Create an account")
                         }
                     }
-                    AuthPage.REGISTER -> TextButton(onClick = { page = AuthPage.LOGIN; errorMessage = null }, modifier = Modifier.align(Alignment.CenterHorizontally)) {
-                        Text("Already have an account? Log in")
+                    AuthPage.REGISTER -> {
+                        TextButton(
+                            onClick = { page = AuthPage.LOGIN; errorMessage = null },
+                            modifier = Modifier.align(Alignment.CenterHorizontally),
+                        ) {
+                            Text("Already have an account? Log in")
+                        }
+                        TextButton(
+                            onClick = authRepository::continueAsGuest,
+                            enabled = !isWorking,
+                            modifier = Modifier.align(Alignment.CenterHorizontally),
+                        ) {
+                            Text("Continue without signing up")
+                        }
                     }
                     AuthPage.FORGOT_PASSWORD, AuthPage.RESET_PASSWORD -> TextButton(
                         onClick = { page = AuthPage.LOGIN; errorMessage = null; notice = null },

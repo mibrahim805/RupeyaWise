@@ -20,10 +20,9 @@ data class AppUpdateInfo(
 object CurrentRelease {
     val versionName: String = BuildConfig.VERSION_NAME
     val notes = listOf(
-        "Browse the current week and a full month of earlier weekly spending on Home",
-        "Create password-encrypted backups and send them safely to your Gmail account",
-        "Restore transactions and budgets without duplicating existing records",
-        "Enjoy faster startup and smoother, more responsive navigation animations",
+        "Start using RupeyaWise without creating an account",
+        "Keep guest transactions and budgets stored locally on your device",
+        "Sign up or log in later and carry your local data into your account",
     )
 }
 

@@ -24,6 +24,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.expensemanager.android.core.designsystem.FinanceTheme
 import com.expensemanager.android.core.designsystem.FinanceThemeMode
 import com.expensemanager.android.core.auth.PasswordResetLink
+import com.expensemanager.android.core.data.local.FinanceDatabase
 import com.expensemanager.android.feature.auth.AuthScreen
 import com.expensemanager.android.core.presentation.FinanceViewModel
 import com.expensemanager.android.core.presentation.FinanceViewModelFactory
@@ -89,28 +90,37 @@ class MainActivity : FragmentActivity() {
                 when {
                     session == null -> AuthScreen(application.authRepository, resetLink)
                     else -> {
-                        val authenticatedUser = session!!.user
+                        val currentSession = session!!
+                        val authenticatedUser = currentSession.user
+                        val ownerId = if (currentSession.isGuest) {
+                            FinanceDatabase.LOCAL_OWNER_ID
+                        } else {
+                            authenticatedUser.id.toString()
+                        }
                         var amountProtectionEnabled by rememberSaveable(authenticatedUser.id) {
                             mutableStateOf(
                                 application.privacyPreferences.isAmountProtectionEnabled(authenticatedUser.id),
                             )
                         }
-                        val financeRepository = remember(authenticatedUser.id) {
+                        val financeRepository = remember(ownerId) {
                             application.financeRepository.apply {
-                                selectOwner(authenticatedUser.id.toString())
+                                selectOwner(ownerId)
                             }
                         }
-                        LaunchedEffect(authenticatedUser.id) {
-                            financeRepository.claimLocalData(authenticatedUser.id.toString())
+                        LaunchedEffect(ownerId, currentSession.isGuest) {
+                            if (!currentSession.isGuest) {
+                                financeRepository.claimLocalData(ownerId)
+                            }
                         }
                         val viewModel: FinanceViewModel = viewModel(
-                            key = "finance-${authenticatedUser.id}",
+                            key = "finance-$ownerId",
                             factory = FinanceViewModelFactory(financeRepository),
                         )
                         ExpenseManagerApp(
                             viewModel = viewModel,
                             themeMode = themeMode,
                             currentUser = authenticatedUser,
+                            isGuest = currentSession.isGuest,
                             amountProtectionEnabled = amountProtectionEnabled,
                             onAuthenticateBalance = ::authenticateToRevealBalance,
                             onAmountProtectionChange = { enabled ->

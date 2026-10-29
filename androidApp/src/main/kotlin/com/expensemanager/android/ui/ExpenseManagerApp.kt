@@ -139,6 +139,7 @@ fun ExpenseManagerApp(
     viewModel: FinanceViewModel,
     themeMode: FinanceThemeMode,
     currentUser: AuthUser,
+    isGuest: Boolean,
     amountProtectionEnabled: Boolean,
     onAuthenticateBalance: (() -> Unit) -> Unit,
     onAmountProtectionChange: (Boolean) -> Unit,
@@ -300,6 +301,7 @@ fun ExpenseManagerApp(
                 SettingsScreen(
                     selectedTheme = themeMode,
                     currentUser = currentUser,
+                    isGuest = isGuest,
                     amountProtectionEnabled = amountProtectionEnabled,
                     onBack = { navController.popBackStack() },
                     onLogout = onLogout,

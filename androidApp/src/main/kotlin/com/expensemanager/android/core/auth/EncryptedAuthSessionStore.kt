@@ -31,6 +31,7 @@ class EncryptedAuthSessionStore(context: Context) {
                         username = json.getString("username"),
                         email = json.optString("email"),
                     ),
+                    isGuest = json.optBoolean("is_guest", false),
                 )
             }
         }.getOrElse {
@@ -45,6 +46,7 @@ class EncryptedAuthSessionStore(context: Context) {
             .put("id", session.user.id)
             .put("username", session.user.username)
             .put("email", session.user.email)
+            .put("is_guest", session.isGuest)
             .toString()
             .toByteArray(Charsets.UTF_8)
         val cipher = Cipher.getInstance(TRANSFORMATION).apply { init(Cipher.ENCRYPT_MODE, key()) }

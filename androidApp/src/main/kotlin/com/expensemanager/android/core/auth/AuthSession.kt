@@ -9,6 +9,7 @@ data class AuthUser(
 data class AuthSession(
     val token: String,
     val user: AuthUser,
+    val isGuest: Boolean = false,
 )
 
 data class PasswordResetLink(val uid: String, val token: String)

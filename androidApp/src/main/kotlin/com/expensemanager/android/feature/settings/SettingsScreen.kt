@@ -80,6 +80,7 @@ import java.time.format.DateTimeFormatter
 fun SettingsScreen(
     selectedTheme: FinanceThemeMode,
     currentUser: AuthUser,
+    isGuest: Boolean,
     amountProtectionEnabled: Boolean,
     onBack: () -> Unit,
     onLogout: () -> Unit,
@@ -195,8 +196,12 @@ fun SettingsScreen(
             colors = CardDefaults.cardColors(containerColor = colors.surface),
         ) {
             Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(currentUser.username, fontWeight = FontWeight.SemiBold)
-                Text(currentUser.email, color = colors.secondaryText, style = MaterialTheme.typography.bodyMedium)
+                Text(if (isGuest) "Guest mode" else currentUser.username, fontWeight = FontWeight.SemiBold)
+                Text(
+                    if (isGuest) "Your data is stored locally on this device." else currentUser.email,
+                    color = colors.secondaryText,
+                    style = MaterialTheme.typography.bodyMedium,
+                )
             }
         }
         OutlinedButton(
@@ -205,7 +210,7 @@ fun SettingsScreen(
         ) {
             Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = null, modifier = Modifier.size(18.dp))
             Spacer(Modifier.size(8.dp))
-            Text("Log out")
+            Text(if (isGuest) "Sign up or log in" else "Log out")
         }
 
         Text("Data & backup", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 22.dp))

@@ -18,6 +18,7 @@ class AuthRepository(private val sessionStore: EncryptedAuthSessionStore) {
 
     suspend fun restoreSession() {
         val current = _session.value ?: return
+        if (current.isGuest) return
         runCatching { request("me/", token = current.token) }
             .onSuccess { response ->
                 val user = response.getJSONObject("user").toAuthUser()
@@ -50,6 +51,20 @@ class AuthRepository(private val sessionStore: EncryptedAuthSessionStore) {
         saveResponseSession(response)
     }
 
+    fun continueAsGuest() {
+        updateSession(
+            AuthSession(
+                token = "",
+                user = AuthUser(
+                    id = GUEST_USER_ID,
+                    username = "Guest",
+                    email = "",
+                ),
+                isGuest = true,
+            ),
+        )
+    }
+
     suspend fun requestPasswordReset(email: String): String =
         request("password-reset/", JSONObject().put("email", email.trim())).getString("message")
 
@@ -66,7 +81,9 @@ class AuthRepository(private val sessionStore: EncryptedAuthSessionStore) {
     suspend fun logout() {
         val current = _session.value
         try {
-            if (current != null) request("logout/", body = JSONObject(), token = current.token)
+            if (current != null && !current.isGuest) {
+                request("logout/", body = JSONObject(), token = current.token)
+            }
         } finally {
             clearSession()
         }
@@ -147,6 +164,10 @@ class AuthRepository(private val sessionStore: EncryptedAuthSessionStore) {
         username = getString("username"),
         email = optString("email"),
     )
+
+    private companion object {
+        const val GUEST_USER_ID = 0L
+    }
 }
 
 class AuthApiException(message: String, val statusCode: Int? = null) : Exception(message)
